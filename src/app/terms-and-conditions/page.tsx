@@ -5,13 +5,13 @@ import { marked } from "marked";
 
 const termsAndConditions = `## Introduction
 
-Welcome to showfer, operated by Virtus Innovation Labs Pvt. Ltd. ("Company", “us”, “we”, or “our”)!
+Welcome to Showfer, operated by Virtus Innovation Labs Pvt. Ltd. ("Company", “us”, “we”, or “our”)!
 
 Below are our Terms of Service, we invite you to carefully read the following pages. It will take you approximately 5 minutes.
 
 These Terms of Service (“Terms”, “Terms of Service”) govern your use of our web pages located at [https://showfer.ai/](https://showfer.ai/) operated by showfer.
 
-Our Privacy Policy also governs your use of our Service and explains how we collect, safeguard and disclose information that results from your use of our web pages. Please read it here [https://showfer.ai/privacy](https://showfer.ai/privacy).
+Our Privacy Policy also governs your use of our Service and explains how we collect, safeguard and disclose information that results from your use of our web pages. Please read it here [https://showfer.ai/privacy-policy](https://showfer.ai/privacy-policy).
 
 Your agreement with us includes these Terms and our Privacy Policy (“Agreements”). You acknowledge that you have read and understood Agreements, and agree to be bound of them.
 
@@ -223,9 +223,15 @@ export default function TermsAndConditions() {
   return (
     <main className="flex flex-col min-h-screen h-screen p-4">
       <Navbar />
-      <div className="bg-white text-gray-900 rounded-lg h-full">
+      <div className="bg-white text-gray-900 rounded-lg h-full overflow-scroll">
         <div className="h-full mx-auto px-24 py-24 flex flex-col items-center">
           <div className="text-5xl mb-[45px]">Terms & Conditions</div>
+          <div>
+            <div
+              className="prose mb-10"
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
+          </div>
         </div>
       </div>
     </main>
