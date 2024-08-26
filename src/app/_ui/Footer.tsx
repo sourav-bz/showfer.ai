@@ -21,7 +21,7 @@ const Footer: React.FC = () => {
           <a href="/privacy-policy" className="mr-[50px]">
             Privacy
           </a>
-          <a href="/refund-policy" className="mr-[50px]">
+          <a href="/terms-and-conditions" className="mr-[50px]">
             Refund Policy
           </a>
           <a href="/contact-us">Contact Us</a>
