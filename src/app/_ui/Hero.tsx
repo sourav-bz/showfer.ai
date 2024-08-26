@@ -2,11 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import Lottie from "lottie-react";
-import namePersonalitySlider from "../../../public/hero/name-personality-slider.json";
-import namePersonalitySlider2 from "../../../public/hero/name-personality-slider2.json";
 import PersonalityName from "./PersonalityName";
-import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { IoCheckbox } from "react-icons/io5";
 
 const Hero: React.FC = () => {
