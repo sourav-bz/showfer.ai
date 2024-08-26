@@ -1,68 +1,96 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
+import Lottie from "lottie-react";
+import namePersonalitySlider from "../../../public/hero/name-personality-slider.json";
+import namePersonalitySlider2 from "../../../public/hero/name-personality-slider2.json";
+import PersonalityName from "./PersonalityName";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { IoCheckbox } from "react-icons/io5";
 
 const Hero: React.FC = () => {
   return (
     <div className="bg-white text-gray-900 rounded-lg h-full">
-      <div className="h-full mx-auto px-4 sm:px-6 lg:px-8 py-24 flex justify-between items-center">
-        <div className="">
-          <div className="flex">
-            <Image
-              src="/hero/ai.svg"
-              alt="AI"
-              width={40}
-              height={40}
-              className="mr-4"
-            />
-            <div className="text-[48px] font-[600]">
-              <span className="text-[#6d67e4]">Mascot</span> for your brand
-            </div>
-          </div>
-          <div className="mt-6 text-xl text-[#8F93A5] font-[400]">
-            Give a{" "}
-            <div
-              className="
-              h-[39px] 
-              px-2.5 
-              py-[5px] 
-              origin-top-left 
-              rotate-[-8deg] 
-              bg-white 
-              rounded-md 
-              justify-center 
-              items-center 
-              gap-2.5 
-              inline-flex mr-2 
-              shadow-[0px_0px_19.8px_0px_rgba(31,28,70,0.11),0px_0px_15px_0px_rgba(52,47,127,0.00),0px_0px_13px_0px_rgba(52,47,127,0.01),0px_0px_11px_0px_rgba(52,47,127,0.05),0px_0px_8px_0px_rgba(52,47,127,0.09),0px_0px_5px_0px_rgba(52,47,127,0.10)]"
-            >
-              <div className="text-[#eaaf3b] text-xl font-medium leading-[29.23px]">
-                friendly
+      <div className="h-full mx-auto px-24 py-24 grid grid-cols-5">
+        <div className="col-span-3">
+          <div className="flex flex-col h-full justify-center">
+            <div className="flex">
+              <Image
+                src="/hero/ai.svg"
+                alt="AI"
+                width={40}
+                height={40}
+                className="mr-4"
+              />
+              <div className="text-[48px] font-[600]">
+                <span className="text-[#6d67e4]">Mascot</span> for your brand
               </div>
-            </div>{" "}
-            personality to your website
-          </div>
-          <div className="mt-20 space-x-4 flex">
-            <a
-              href="#schedule-demo"
-              className="px-5 py-2.5 bg-[#6d67e4] rounded-md justify-center items-center gap-2.5 flex text-white"
-            >
-              Schedule a demo
-            </a>
-            <a
-              href="#sign-up"
-              className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex text-[#6d67e4]"
-            >
-              Sign up for free
-            </a>
+            </div>
+            <div className="text-[48px] font-[600] mb-[15px]">
+              custom <span className="text-[#6d67e4]">AI</span> features
+            </div>
+            <div className="mt-6 text-xl text-[#8F93A5] font-[400] max-w-[700px] mb-[76px]">
+              <div className="mb-2">
+                Give a <PersonalityName /> personality to your website with
+                Showfer.ai
+              </div>
+              <div>where AI brings personality to your digital experience.</div>
+            </div>
+            <div className="mt-8 flex max-w-[700px] overflow flex-wrap">
+              {[
+                "Personalized onboarding",
+                "Realistic Personalities",
+                "Friendly pricing as you scale",
+                "7 days free trail",
+                "Cancel anytime",
+              ].map((feature, index) => (
+                <div
+                  key={index}
+                  className="flex items-center space-x-2 mr-[20px] py-[10px] mb-[10px]"
+                >
+                  <IoCheckbox className="h-5 w-5 text-[#6d67e4]" />
+                  <span className="text-base text-gray-600">{feature}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-20 space-x-4 flex">
+              <a
+                href="#schedule-demo"
+                className="px-5 py-2.5 bg-[#6d67e4] rounded-md justify-center items-center gap-2.5 flex text-white"
+              >
+                Coming soon
+              </a>
+            </div>
+            {/* <div className="mt-20 space-x-4 flex">
+              <a
+                href="#schedule-demo"
+                className="px-5 py-2.5 bg-[#6d67e4] rounded-md justify-center items-center gap-2.5 flex text-white"
+              >
+                Schedule a demo
+              </a>
+              <a
+                href="#sign-up"
+                className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex text-[#6d67e4]"
+              >
+                Sign up for free
+              </a>
+            </div> */}
           </div>
         </div>
-        <div className="hidden md:block">
-          <Image
-            src="/hero/mascot-1.png"
-            alt="AI Mascot"
-            width={550}
-            height={550}
-          />
+        <div className="hidden md:block col-span-2">
+          <div className="flex flex-col h-full justify-center">
+            <video
+              src="/hero/personality-slider.mp4"
+              width={550}
+              height={550}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="rounded-lg"
+            />
+          </div>
         </div>
       </div>
     </div>
