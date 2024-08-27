@@ -37,7 +37,7 @@ const PersonalityName: React.FC = () => {
   }, []);
 
   return (
-    <span className="inline-block align-middle mr-2" style={{ height: "39px" }}>
+    <span className="inline-block align-middle mr-4" style={{ height: "39px" }}>
       <AnimatePresence mode="wait">
         <motion.span
           key={currentPersonality}

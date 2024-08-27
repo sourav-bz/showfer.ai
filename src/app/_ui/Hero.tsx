@@ -9,12 +9,12 @@ import { AnimatePresence, motion } from "framer-motion";
 const Hero: React.FC = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const images = [
-    "/hero/personality-1-friendly.png",
-    "/hero/personality-2-trustworthy.png",
-    "/hero/personality-3-playful.png",
-    "/hero/personality-4-innovative.png",
-    "/hero/personality-5-creative.png",
-    "/hero/personality-6-rugged.png",
+    "/hero/personality-1-friendly.svg",
+    "/hero/personality-2-trustworthy.svg",
+    "/hero/personality-3-playful.svg",
+    "/hero/personality-4-innovative.svg",
+    "/hero/personality-5-creative.svg",
+    "/hero/personality-6-rugged.svg",
   ];
 
   useEffect(() => {
@@ -53,7 +53,7 @@ const Hero: React.FC = () => {
             </div>
             <div className="mt-6 text-xl text-[#8F93A5] font-[400] max-w-[700px] mb-[76px]">
               <div className="mb-2 flex items-center">
-                <div className="mr-2">Give a </div>
+                <div className="mr-4">Give a </div>
                 <PersonalityName />{" "}
                 <div>personality to your website with Showfer.ai</div>
               </div>
@@ -101,32 +101,32 @@ const Hero: React.FC = () => {
           </div>
         </div>
         <div className="hidden md:block col-span-2">
-          <div className="flex flex-col h-full justify-center">
-            <div className="relative flex items-center justify-center h-full overflow-hidden">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentImage}
-                  variants={imageVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30,
-                    duration: 0.5,
-                  }}
-                  className="absolute w-full h-[700px] rounded-lg overflow-hidden"
-                >
+          <div className="relative h-full">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentImage}
+                variants={imageVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                  duration: 0.5,
+                }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <div className="w-full h-full flex items-center overflow-hidden">
                   <Image
                     src={images[currentImage]}
                     alt={`Image ${currentImage + 1}`}
                     width={600}
                     height={600}
                   />
-                </motion.div>
-              </AnimatePresence>
-            </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
