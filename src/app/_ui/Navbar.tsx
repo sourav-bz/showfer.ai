@@ -15,7 +15,7 @@ const Navbar: React.FC = () => {
           />
         </Link>
         <div className="justify-end items-center gap-[15px] flex">
-          {/* <div className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex">
+          <div className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex">
             <div className="text-[#6d67e4] text-sm font-medium tracking-tight">
               Sign in
             </div>
@@ -24,12 +24,12 @@ const Navbar: React.FC = () => {
             <div className="text-white text-sm font-medium tracking-tight">
               Schedule a demo
             </div>
-          </div> */}
-          <div className="px-5 py-2.5 bg-[#6d67e4] rounded-md justify-center items-center gap-2.5 flex">
+          </div>
+          {/* <div className="px-5 py-2.5 bg-[#6d67e4] rounded-md justify-center items-center gap-2.5 flex">
             <div className="text-white text-sm font-medium tracking-tight">
               Coming soon
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </nav>

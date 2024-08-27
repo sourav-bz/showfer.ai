@@ -76,15 +76,15 @@ const Hero: React.FC = () => {
                 </div>
               ))}
             </div>
-            <div className="mt-10 space-x-4 flex">
+            {/* <div className="mt-10 space-x-4 flex">
               <a
                 href="#schedule-demo"
                 className="px-5 py-2.5 bg-[#6d67e4] rounded-md justify-center items-center gap-2.5 flex text-white"
               >
                 Coming soon
               </a>
-            </div>
-            {/* <div className="mt-20 space-x-4 flex">
+            </div> */}
+            <div className="mt-20 space-x-4 flex">
               <a
                 href="#schedule-demo"
                 className="px-5 py-2.5 bg-[#6d67e4] rounded-md justify-center items-center gap-2.5 flex text-white"
@@ -97,7 +97,7 @@ const Hero: React.FC = () => {
               >
                 Sign up for free
               </a>
-            </div> */}
+            </div>
           </div>
         </div>
         <div className="hidden md:block col-span-2">
