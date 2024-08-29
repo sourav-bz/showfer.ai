@@ -33,7 +33,7 @@ export default function DashboardLayout({
               <Header />
             </div>
             <div className="row-span-11 rounded-md">
-              <Playground />
+              {children}
             </div>
           </div>
         </div>

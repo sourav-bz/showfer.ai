@@ -7,7 +7,7 @@ export default function VoiceInterface() {
       <div className="mb-8">
         <VoiceOrb width={200} height={200} />
       </div>
-      <Image src={"./playground/mic.svg"} width={70} height={70} alt="mic" />
+      <Image src={"/playground/mic.svg"} width={70} height={70} alt="mic" />
     </div>
   );
 }

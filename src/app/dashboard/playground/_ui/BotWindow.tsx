@@ -14,7 +14,7 @@ const BotWindow = () => {
       <div className="bg-[#6D67E4] p-4 flex justify-between items-center">
         <div className="items-center">
           <Image
-            src={"./brand-logo/light.svg"}
+            src={"/brand-logo/light.svg"}
             width={65}
             height={30}
             alt="showfer-ai-logo"
@@ -31,8 +31,8 @@ const BotWindow = () => {
           <Image
             src={
               isChatMode
-                ? "./playground/voice.svg"
-                : "./playground/message-text.svg"
+                ? "/playground/voice.svg"
+                : "/playground/message-text.svg"
             }
             width={18}
             height={18}
