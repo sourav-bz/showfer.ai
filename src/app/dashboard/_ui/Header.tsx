@@ -13,7 +13,7 @@ export default function Header({ activeItem }: { activeItem: string }) {
     <div className="h-full rounded-md">
       <div className="flex h-full justify-between items-center">
         <div className="text-2xl">{activeItem}</div>
-        <div className="flex-grow flex justify-center">
+        {activeItem === "Playground" && <div className="flex-grow flex justify-center">
           <div className="flex bg-[#E3E4EC] p-1 rounded-md">
             <button
               className={`px-3 py-2 rounded-md ${view === "desktop" ? "bg-[#6D67E4] text-white" : ""
@@ -46,8 +46,7 @@ export default function Header({ activeItem }: { activeItem: string }) {
               Mobile
             </button>
           </div>
-        </div>
-
+        </div>}
         <div className="ml-auto flex items-center">
           <div className="bg-white w-[40px] h-[40px] rounded-full mr-4 flex justify-center items-center">
             <IoNotificationsOutline size={24} />

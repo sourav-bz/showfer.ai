@@ -1,5 +1,5 @@
 export default function Assistant() {
     return (
-        <div className="flex flex-col min-h-screen h-screen p-4">Assistant</div>
+        <div className="rounded-md h-full overflow-hidden">Assistant</div>
     );
 }
