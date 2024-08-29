@@ -8,7 +8,7 @@ const Navbar: React.FC = () => {
       <div className=" flex justify-between items-center">
         <Link href="/" className="flex items-center">
           <Image
-            src="./brand-logo/dark.svg"
+            src="/brand-logo/dark.svg"
             alt="Showfer.ai Logo"
             width={120}
             height={30}

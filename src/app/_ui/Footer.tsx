@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
     <footer className="bg-gray-100 p-4 mt-auto">
       <div className="w-full flex flex-col items-center">
         <Image
-          src="./brand-logo/dark.svg"
+          src="/brand-logo/dark.svg"
           alt="Showfer.ai Logo"
           width={120}
           height={30}

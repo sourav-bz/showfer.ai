@@ -1,30 +1,28 @@
 "use client";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+import { Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/react";
 import { IoNotificationsOutline } from "react-icons/io5";
 import Avvvatars from "avvvatars-react";
 import { ChevronDownIcon } from "@heroicons/react/16/solid";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import Image from "next/image";
 
-export default function Header() {
+export default function Header({ activeItem }: { activeItem: string }) {
   const [view, setView] = useState<"mobile" | "desktop">("desktop");
 
   return (
     <div className="h-full rounded-md">
       <div className="flex h-full justify-between items-center">
-        <div className="text-2xl">Playground</div>
-        <div className="flex-grow flex justify-center">
+        <div className="text-2xl">{activeItem}</div>
+        {activeItem === "Playground" && <div className="flex-grow flex justify-center">
           <div className="flex bg-[#E3E4EC] p-1 rounded-md">
             <button
-              className={`px-3 py-2 rounded-md ${
-                view === "desktop" ? "bg-[#6D67E4] text-white" : ""
-              } flex items-center`}
+              className={`px-3 py-2 rounded-md ${view === "desktop" ? "bg-[#6D67E4] text-white" : ""
+                } flex items-center`}
               onClick={() => setView("desktop")}
             >
               <Image
-                src={`./playground/desktop-${
-                  view === "desktop" ? "active" : "inactive"
-                }.svg`}
+                src={`/playground/desktop-${view === "desktop" ? "active" : "inactive"
+                  }.svg`}
                 width={20}
                 height={20}
                 alt="mobile"
@@ -33,15 +31,13 @@ export default function Header() {
               Desktop
             </button>
             <button
-              className={`px-3 py-2 rounded-md ${
-                view === "mobile" ? "bg-[#6D67E4] text-white" : ""
-              } flex items-center`}
+              className={`px-3 py-2 rounded-md ${view === "mobile" ? "bg-[#6D67E4] text-white" : ""
+                } flex items-center`}
               onClick={() => setView("mobile")}
             >
               <Image
-                src={`./playground/mobile-${
-                  view === "mobile" ? "active" : "inactive"
-                }.svg`}
+                src={`/playground/mobile-${view === "mobile" ? "active" : "inactive"
+                  }.svg`}
                 width={20}
                 height={20}
                 alt="mobile"
@@ -50,8 +46,7 @@ export default function Header() {
               Mobile
             </button>
           </div>
-        </div>
-
+        </div>}
         <div className="ml-auto flex items-center">
           <div className="bg-white w-[40px] h-[40px] rounded-full mr-4 flex justify-center items-center">
             <IoNotificationsOutline size={24} />
@@ -65,31 +60,43 @@ export default function Header() {
             />
           </div>
           <div>
-            <Menu>
-              <MenuButton className="flex items-center text-[14px]">
+            <Menu as="div" className="relative z-50">
+              <MenuButton className="flex items-center text-[14px] hover:text-gray-700 focus:outline-none">
                 My account
                 <ChevronDownIcon className="size-4 fill-black/60 ml-1" />
               </MenuButton>
-              <MenuItems anchor="bottom">
-                <MenuItem>
-                  <a
-                    className="block data-[focus]:bg-blue-100"
-                    href="/settings"
-                  >
-                    Settings
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <a className="block data-[focus]:bg-blue-100" href="/support">
-                    Support
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <a className="block data-[focus]:bg-blue-100" href="/license">
-                    License
-                  </a>
-                </MenuItem>
-              </MenuItems>
+              <Transition
+                as={Fragment}
+                enter="transition ease-out duration-100"
+                enterFrom="transform opacity-0 scale-95"
+                enterTo="transform opacity-100 scale-100"
+                leave="transition ease-in duration-75"
+                leaveFrom="transform opacity-100 scale-100"
+                leaveTo="transform opacity-0 scale-95"
+              >
+                <MenuItems className="absolute right-0 mt-4 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <div className="py-2">
+                    <MenuItem>
+                      <a href="/settings"
+                        className={`text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100`}>
+                        Settings
+                      </a>
+                    </MenuItem>
+                    <MenuItem>
+                      <a href="/support"
+                        className={`text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100`}>
+                        Support
+                      </a>
+                    </MenuItem>
+                    <MenuItem>
+                      <a href="/license"
+                        className={`text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100`}>
+                        License
+                      </a>
+                    </MenuItem>
+                  </div>
+                </MenuItems>
+              </Transition>
             </Menu>
           </div>
         </div>

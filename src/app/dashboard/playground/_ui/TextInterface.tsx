@@ -21,7 +21,7 @@ export default function TextInterface() {
           className="flex-grow border-0 rounded-l-lg p-2 placeholder:text-sm focus:outline-none"
         />
         <Image
-          src={"./playground/send.svg"}
+          src={"/playground/send.svg"}
           width={24}
           height={24}
           alt="send"
