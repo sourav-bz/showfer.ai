@@ -5,9 +5,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function Navbar() {
+export default function Navbar({ setActiveItem, activeItem }: { setActiveItem: (item: string) => void, activeItem: string }) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const pathname = usePathname();
 
   return (
     <motion.div
@@ -34,31 +33,34 @@ export default function Navbar() {
         />
       </div>
       <div className="mt-8 space-y-4 pr-4">
-        <NavItem icon="home" label="Home" href="/dashboard" isExpanded={isExpanded} isActive={pathname === "/dashboard"} />
+        <NavItem icon="home" label="Home" href="/dashboard" isExpanded={isExpanded} setActiveItem={setActiveItem} activeItem={activeItem} />
         <NavItem
           icon="playground"
           label="Playground"
           href="/dashboard/playground"
-          isActive={pathname === "/dashboard/playground"}
           isExpanded={isExpanded}
+          setActiveItem={setActiveItem}
+          activeItem={activeItem}
         />
-        <NavItem icon="assistant" label="Assistant" href="/dashboard/assistant" isExpanded={isExpanded} isActive={pathname === "/dashboard/assistant"} />
+        <NavItem icon="assistant" label="Assistant" href="/dashboard/assistant" isExpanded={isExpanded} setActiveItem={setActiveItem} activeItem={activeItem} />
         <NavItem
           icon="chathistory"
           label="Chat History"
           href="/dashboard/chat-history"
-          isActive={pathname === "/dashboard/chat-history"}
           isExpanded={isExpanded}
+          setActiveItem={setActiveItem}
+          activeItem={activeItem}
         />
-        <NavItem icon="appearance" label="Appearance" href="/dashboard/appearance" isExpanded={isExpanded} isActive={pathname === "/dashboard/appearance"} />
-        <NavItem icon="billing" label="Billing" href="/dashboard/billing" isExpanded={isExpanded} isActive={pathname === "/dashboard/billing"} />
-        <NavItem icon="usage" label="Usage" href="/dashboard/usage" isExpanded={isExpanded} isActive={pathname === "/dashboard/usage"} />
+        <NavItem icon="appearance" label="Appearance" href="/dashboard/appearance" isExpanded={isExpanded} setActiveItem={setActiveItem} activeItem={activeItem} />
+        <NavItem icon="billing" label="Billing" href="/dashboard/billing" isExpanded={isExpanded} setActiveItem={setActiveItem} activeItem={activeItem} />
+        <NavItem icon="usage" label="Usage" href="/dashboard/usage" isExpanded={isExpanded} setActiveItem={setActiveItem} activeItem={activeItem} />
         <NavItem
           icon="integrations"
           label="Integrations"
           href="/dashboard/integrations"
           isExpanded={isExpanded}
-          isActive={pathname === "/dashboard/integrations"}
+          activeItem={activeItem}
+          setActiveItem={setActiveItem}
         />
       </div>
     </motion.div>
@@ -69,25 +71,27 @@ function NavItem({
   icon,
   label,
   href,
-  isActive = false,
   isExpanded,
+  activeItem,
+  setActiveItem,
 }: {
   icon: string;
   label: string;
   href: string;
-  isActive?: boolean;
   isExpanded: boolean;
+  activeItem: string;
+  setActiveItem: (item: string) => void;
 }) {
   return (
-    <Link href={href} className="block">
+    <Link href={href} className="block" onClick={() => setActiveItem(label)}>
       <div
-        className={`flex items-center px-4 py-2 rounded-md ${isActive
+        className={`flex items-center px-4 py-2 rounded-md ${activeItem === label
           ? "bg-purple-100 text-purple-600 font-medium"
           : "text-gray-600 font-normal hover:bg-gray-100"
           }`}
       >
         <Image
-          src={`/dashboard/${icon}-${isActive ? "active" : "inactive"}.svg`}
+          src={`/dashboard/${icon}-${activeItem === label ? "active" : "inactive"}.svg`}
           alt={label}
           width={20}
           height={20}

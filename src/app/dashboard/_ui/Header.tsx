@@ -6,13 +6,13 @@ import { ChevronDownIcon } from "@heroicons/react/16/solid";
 import { Fragment, useState } from "react";
 import Image from "next/image";
 
-export default function Header() {
+export default function Header({ activeItem }: { activeItem: string }) {
   const [view, setView] = useState<"mobile" | "desktop">("desktop");
 
   return (
     <div className="h-full rounded-md">
       <div className="flex h-full justify-between items-center">
-        <div className="text-2xl">Playground</div>
+        <div className="text-2xl">{activeItem}</div>
         <div className="flex-grow flex justify-center">
           <div className="flex bg-[#E3E4EC] p-1 rounded-md">
             <button
