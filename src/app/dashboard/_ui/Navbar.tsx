@@ -15,8 +15,17 @@ const navigationTabs = [
   { icon: "integrations", label: "Integrations", href: "/dashboard/integrations" },
 ];
 
-export default function Navbar({ setActiveItem, activeItem }: { setActiveItem: (item: string) => void, activeItem: string }) {
-  const [isExpanded, setIsExpanded] = useState(true);
+export default function Navbar({
+  setActiveItem,
+  activeItem,
+  isExpanded,
+  setIsExpanded
+}: {
+  setActiveItem: (item: string) => void,
+  activeItem: string,
+  isExpanded: boolean,
+  setIsExpanded: (isExpanded: boolean) => void
+}) {
   const pathname = usePathname();
 
   useEffect(() => {

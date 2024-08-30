@@ -12,16 +12,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const [activeItem, setActiveItem] = useState("");
+  const [isExpanded, setIsExpanded] = useState(true);
 
   return (
     <div
       className={`${inter.className} flex flex-col min-h-screen bg-[#F0F2F7]`}
     >
       <div className="grid grid-cols-12 gap-2 h-screen p-4">
-        <div className="col-span-2 h-full rounded-md">
-          <Navbar setActiveItem={setActiveItem} activeItem={activeItem} />
+        <div className={`${isExpanded ? "col-span-2" : "col-span-1"} w-full  h-full rounded-md`}>
+          <Navbar setActiveItem={setActiveItem} activeItem={activeItem} isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
         </div>
-        <div className="col-span-10 h-full rounded-md">
+        <div className={`${isExpanded ? "col-span-10" : "col-span-11"} h-full rounded-md`}>
           <div className="grid grid-row-12 gap-2 h-full">
             <div className="row-span-1">
               <Header activeItem={activeItem} />

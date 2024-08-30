@@ -5,9 +5,10 @@ import Avvvatars from "avvvatars-react";
 import { ChevronDownIcon } from "@heroicons/react/16/solid";
 import { Fragment, useState } from "react";
 import Image from "next/image";
+import { useDashboardStore } from "@/app/store/DashboardStore";
 
 export default function Header({ activeItem }: { activeItem: string }) {
-  const [view, setView] = useState<"mobile" | "desktop">("desktop");
+  const { view, setView } = useDashboardStore();
 
   return (
     <div className="h-full rounded-md">
