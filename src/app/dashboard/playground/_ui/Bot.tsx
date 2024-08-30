@@ -6,17 +6,19 @@ import voiceAnimation from "../../../../../public/playground/lottie/voiceanimati
 import voiceOrb from "../../../../../public/playground/lottie/voiceOrb.json";
 import AnimatedOrb from "./AnimatedOrb";
 
-const Bot = () => {
+const Bot = ({ mobile }: { mobile?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleChat = () => setIsOpen(!isOpen);
 
   return (
-    <div className="absolute bottom-[70px] right-4 flex flex-col items-end">
-      {isOpen && <BotWindow />}
-      <button onClick={toggleChat}>
-        <AnimatedOrb width={50} height={50} />
-      </button>
+    <div className={`absolute flex flex-col items-end ${mobile ? 'bottom-10 right-6' : 'bottom-4 right-4'}`}>
+      {isOpen && <BotWindow mobile={mobile} toggleChat={toggleChat} />}
+      {!mobile ? <button onClick={toggleChat}>
+        <AnimatedOrb width={mobile ? 40 : 50} height={mobile ? 40 : 50} />
+      </button> : isOpen ? null : <button onClick={toggleChat}>
+        <AnimatedOrb width={mobile ? 40 : 50} height={mobile ? 40 : 50} />
+      </button>}
     </div>
   );
 };
