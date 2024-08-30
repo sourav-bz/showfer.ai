@@ -90,7 +90,7 @@ export default function Playground() {
                 className="w-full h-full"
                 sandbox="allow-same-origin"
               />
-              <Bot url={url} />
+              <Bot />
             </div> :
             <div className="bg-white w-full h-full rounded-md relative">
               <div className="flex items-center justify-center h-[800px]">
@@ -118,7 +118,7 @@ export default function Playground() {
                     />
                   </div>
                   <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 w-28 h-1 bg-black rounded-full"></div>
-                  <Bot url={url} mobile={true} />
+                  <Bot mobile={true} />
                 </div>
               </div>
             </div>

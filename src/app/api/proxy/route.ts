@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
       status: response.status,
       headers: response.headers,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Proxy error:', error.response?.data || error.message);
     return NextResponse.json({
       error: 'Failed to fetch the requested URL',
