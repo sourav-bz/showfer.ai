@@ -15,15 +15,19 @@ export default function VoiceInterface({
   handleSendMessage,
 }: {
   mobile: boolean;
-  handleSendMessage;
+  handleSendMessage: (params: {
+    message: string;
+    setMessage: React.Dispatch<React.SetStateAction<string>>;
+    handleTextToSpeech: (text: string) => void;
+  }) => void;
 }) {
   const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-  const audioRef = useRef(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const isSpeakingRef = useRef(false);
-  const silenceTimeoutRef = useRef(null);
+  const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [message, setMessage] = useState("");
   const { messageThread, setMessageThread } = usePlaygroundStore();
 
@@ -33,7 +37,6 @@ export default function VoiceInterface({
       console.log("thread: ", thread.id);
       setMessageThread(thread);
     };
-
     if (!messageThread) {
       fetchMessages();
     } else {
@@ -41,7 +44,7 @@ export default function VoiceInterface({
     }
   }, [messageThread]);
 
-  const handleTextToSpeech = async (text) => {
+  const handleTextToSpeech = async (text: string) => {
     if (!audioRef.current) return;
 
     try {

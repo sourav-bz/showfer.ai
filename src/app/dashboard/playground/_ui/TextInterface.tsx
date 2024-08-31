@@ -9,10 +9,19 @@ const configuration = {
 };
 const openai = new OpenAI(configuration);
 
-export default function TextInterface({ handleSendMessage }) {
+interface TextInterfaceProps {
+  handleSendMessage: (params: {
+    message: string;
+    setMessage: React.Dispatch<React.SetStateAction<string>>;
+  }) => void;
+}
+
+export default function TextInterface({
+  handleSendMessage,
+}: TextInterfaceProps) {
   const [message, setMessage] = useState("");
-  const chatContainerRef = useRef(null);
-  const inputRef = useRef(null);
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const { messages, messageThread, setMessageThread } = usePlaygroundStore();
 

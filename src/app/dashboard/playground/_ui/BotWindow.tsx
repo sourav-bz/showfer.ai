@@ -42,6 +42,10 @@ const BotWindow = ({
     message,
     setMessage,
     handleTextToSpeech = () => {},
+  }: {
+    message: string;
+    setMessage: React.Dispatch<React.SetStateAction<string>>;
+    handleTextToSpeech?: (text: string) => void;
   }) => {
     if (message.trim() === "") return;
 
@@ -52,7 +56,7 @@ const BotWindow = ({
     addMessage(newMessage);
     setMessage("");
 
-    var threadId = messageThread!.id;
+    var threadId = messageThread?.id || "";
     if (!messageThread) {
       console.log("creating new messageThread: ", messageThread);
 
