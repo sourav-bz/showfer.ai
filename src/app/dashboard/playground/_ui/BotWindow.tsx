@@ -1,12 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSwipeable } from "react-swipeable";
 import Image from "next/image";
 import VoiceInterface from "./VoiceInterface";
 import TextInterface from "./TextInterface";
-import { ChatBubbleBottomCenterTextIcon } from "@heroicons/react/16/solid";
+import OpenAI from "openai";
+import { usePlaygroundStore } from "@/app/store/PlaygroundStore";
 
-const BotWindow = ({ mobile, toggleChat }: { mobile?: boolean, toggleChat: () => void }) => {
+const configuration = {
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true, // Required for client-side use
+};
+const openai = new OpenAI(configuration);
+
+const BotWindow = ({
+  mobile,
+  toggleChat,
+}: {
+  mobile?: boolean;
+  toggleChat: () => void;
+}) => {
   const [isChatMode, setIsChatMode] = useState(false);
+  const { addMessage, messageThread, setMessageThread, updateLastMessage } =
+    usePlaygroundStore();
 
   const toggleMode = () => setIsChatMode(!isChatMode);
   const handleSwiped = (event: any) => {
@@ -17,13 +32,66 @@ const BotWindow = ({ mobile, toggleChat }: { mobile?: boolean, toggleChat: () =>
 
   const handlers = useSwipeable({
     onSwiped: handleSwiped,
-    onTouchStartOrOnMouseDown: (({ event }) => event.preventDefault()),
+    onTouchStartOrOnMouseDown: ({ event }) => event.preventDefault(),
     touchEventOptions: { passive: false },
     preventScrollOnSwipe: true,
-    trackMouse: true
+    trackMouse: true,
   });
 
-  return mobile ?
+  const handleSendMessage = async ({
+    message,
+    setMessage,
+    handleTextToSpeech = () => {},
+  }) => {
+    if (message.trim() === "") return;
+
+    const newMessage: { type: "user" | "ai"; content: string } = {
+      type: "user",
+      content: message,
+    };
+    addMessage(newMessage);
+    setMessage("");
+
+    var threadId = messageThread!.id;
+    if (!messageThread) {
+      console.log("creating new messageThread: ", messageThread);
+
+      const newMessageThread = await openai.beta.threads.create();
+      console.log("thread: ", newMessageThread.id);
+      setMessageThread(newMessageThread);
+      threadId = newMessageThread.id;
+    }
+    const thread = await openai.beta.threads.messages.create(threadId, {
+      role: "user",
+      content: `${message}`,
+    });
+    console.log("thread: ", thread);
+
+    let accumulatedMessage = "";
+    const run = openai.beta.threads.runs
+      .stream(threadId, {
+        assistant_id: "asst_jBAwKYxYlnsLOFbfweGveOFV",
+      })
+      .on("textCreated", (text) => {
+        console.log("textCreated: ", text);
+        // Initialize the AI message when the text is created
+        addMessage({ type: "ai", content: "" });
+      })
+      .on("textDelta", (textDelta, snapshot) => {
+        console.log("textDelta: ", textDelta);
+        accumulatedMessage += textDelta.value;
+        // Update the last message (which is the AI's response) with the accumulated content
+        updateLastMessage({ type: "ai", content: accumulatedMessage });
+      })
+      .on("end", () => {
+        console.log("Stream ended");
+        if (!isChatMode) {
+          handleTextToSpeech(accumulatedMessage);
+        }
+      });
+  };
+
+  return mobile && !isChatMode ? (
     <div
       className="w-[258px] h-auto bg-white rounded-xl border border-gray-200 overflow-hidden mb-4 flex flex-col items-center justify-center relative p-2 -mr-0.5 touch-none"
       {...handlers}
@@ -38,8 +106,7 @@ const BotWindow = ({ mobile, toggleChat }: { mobile?: boolean, toggleChat: () =>
             objectFit="contain"
           />
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="rounded-full bg-white p-1 w-[70px] h-[70px] blur-sm">
-            </div>
+            <div className="rounded-full bg-white p-1 w-[70px] h-[70px] blur-sm"></div>
           </div>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85px] h-[88px]">
             <Image
@@ -53,25 +120,35 @@ const BotWindow = ({ mobile, toggleChat }: { mobile?: boolean, toggleChat: () =>
           </div>
         </div>
         <div className="w-2/3 flex flex-col items-center pl-2">
-          <div className="flex self-end">
+          <button className="flex self-end" onClick={toggleMode}>
             <div className="flex bg-[#6D67E4] text-white rounded-md p-1 text-[10px] mb-2">
-              <ChatBubbleBottomCenterTextIcon className="w-3 h-3 fill-current mr-1 mt-0.5" />
+              <Image
+                src={"/playground/message-text.svg"}
+                alt="Chat"
+                width={14}
+                height={14}
+                className="mr-1"
+                style={{ filter: "brightness(0) invert(1)" }}
+              />
               Chat
             </div>
-          </div>
-          <p className="text-[11px] text-center mb-0.5">Hi, how can I help you?</p>
-          <button className="p-1 rounded-full ">
-            <Image
-              src="/playground/mic.svg"
-              alt="Microphone"
-              width={35}
-              height={35}
-            />
           </button>
+          <p className="text-[11px] text-center mb-0.5">
+            Hi, how can I help you?
+          </p>
+          <VoiceInterface mobile={true} handleSendMessage={handleSendMessage} />
         </div>
       </div>
     </div>
-    : <div className="w-[330px] h-[530px] bg-white rounded-lg shadow-md overflow-hidden mb-4 flex flex-col">
+  ) : (
+    <div
+      className={`${
+        mobile
+          ? "w-[276px] h-[560px] -mb-7 -mr-3 rounded-[20px]"
+          : "w-[330px] h-[530px] mb-4 rounded-lg "
+      } bg-white shadow-md overflow-hidden flex flex-col`}
+      {...(mobile ? handlers : {})}
+    >
       <div className="bg-[#6D67E4] p-4 flex justify-between items-center">
         <div className="items-center">
           <Image
@@ -103,8 +180,13 @@ const BotWindow = ({ mobile, toggleChat }: { mobile?: boolean, toggleChat: () =>
           <div>{isChatMode ? "Voice" : "Chat"}</div>
         </button>
       </div>
-      {isChatMode ? <TextInterface /> : <VoiceInterface />}
+      {isChatMode ? (
+        <TextInterface handleSendMessage={handleSendMessage} />
+      ) : (
+        <VoiceInterface mobile={false} handleSendMessage={handleSendMessage} />
+      )}
     </div>
+  );
 };
 
 export default BotWindow;

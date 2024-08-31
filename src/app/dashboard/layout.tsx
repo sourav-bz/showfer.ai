@@ -15,23 +15,24 @@ export default function DashboardLayout({
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
-    <div
-      className={`${inter.className} flex flex-col min-h-screen bg-[#F0F2F7]`}
-    >
-      <div className="grid grid-cols-12 gap-2 h-screen p-4">
-        <div className={`${isExpanded ? "col-span-2" : "col-span-1"} w-full  h-full rounded-md`}>
-          <Navbar setActiveItem={setActiveItem} activeItem={activeItem} isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
+    <div className={`${inter.className} flex h-screen bg-[#F0F2F7]`}>
+      <div
+        className={`${
+          isExpanded ? "w-64" : "w-20"
+        } flex-shrink-0 pb-4 transition-all duration-300 ease-in-out`}
+      >
+        <Navbar
+          setActiveItem={setActiveItem}
+          activeItem={activeItem}
+          isExpanded={isExpanded}
+          setIsExpanded={setIsExpanded}
+        />
+      </div>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="h-16 p-4">
+          <Header activeItem={activeItem} />
         </div>
-        <div className={`${isExpanded ? "col-span-10" : "col-span-11"} h-full rounded-md`}>
-          <div className="grid grid-row-12 gap-2 h-full">
-            <div className="row-span-1">
-              <Header activeItem={activeItem} />
-            </div>
-            <div className="row-span-11 rounded-md">
-              {children}
-            </div>
-          </div>
-        </div>
+        <div className="flex-1 p-4 overflow-auto">{children}</div>
       </div>
     </div>
   );
