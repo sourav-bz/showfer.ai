@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Bot from "./_ui/Bot";
 import { useEffect, useRef, useState } from "react";
-import { useDashboardStore } from "@/app/store/DashboardStore";
+import { useDashboardStore } from "@/app/(dashboard)/_store/DashboardStore";
 import { WifiIcon } from "@heroicons/react/16/solid";
 
 export default function Playground() {

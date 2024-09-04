@@ -1,6 +1,6 @@
 import React from "react";
-import Navbar from "../_ui/Navbar";
 import Image from "next/image";
+import Navbar from "../_ui/Navbar";
 
 export default function ContactUs() {
   return (

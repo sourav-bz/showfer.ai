@@ -33,11 +33,6 @@ const Hero: React.FC = () => {
     exit: { opacity: 0, x: "100%", scale: 0.5 },
   };
 
-  const handleSignUp = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    router.push("/onboarding");
-  };
-
   return (
     <div className="bg-white text-gray-900 rounded-lg h-full">
       <div className="h-full mx-auto px-24 py-24 grid grid-cols-5">
@@ -99,8 +94,7 @@ const Hero: React.FC = () => {
                 Schedule a demo
               </a>
               <a
-                href="/onboarding"
-                onClick={handleSignUp}
+                href="/signup"
                 className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex text-[#6d67e4]"
               >
                 Sign up for free

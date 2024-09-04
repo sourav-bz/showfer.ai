@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Navbar from "../_ui/Navbar";
 import { marked } from "marked";
+import Navbar from "../_ui/Navbar";
 
 const privacyPolicy = `## Introduction
 
