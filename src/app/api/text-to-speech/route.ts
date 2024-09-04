@@ -1,41 +1,52 @@
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
-import { PassThrough, Readable } from "stream";
 
-const configuration = {
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-};
-const openai = new OpenAI(configuration);
+});
 
 export async function POST(req: NextRequest) {
-  const { text } = await req.json();
-
   try {
+    const { text } = await req.json();
+
+    if (!text) {
+      return new Response(JSON.stringify({ error: "Text is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const response = await openai.audio.speech.create({
       model: "tts-1",
       voice: "alloy",
       input: text,
       response_format: "mp3",
     });
-    // Create a PassThrough stream
-    const stream = new PassThrough();
 
-    // Pipe the response body to the PassThrough stream
-    response?.body?.pipe(stream);
+    if (!response.body) {
+      throw new Error("No response body");
+    }
 
-    // Set appropriate headers for streaming
-    const headers = new Headers({
-      "Content-Type": "audio/mpeg",
-      "Transfer-Encoding": "chunked",
+    const reader = response.body.getReader();
+    const chunks = [];
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+    const buffer = Buffer.concat(chunks);
+
+    return new Response(buffer, {
+      headers: {
+        "Content-Type": "audio/mpeg",
+        "Content-Length": buffer.length.toString(),
+      },
     });
-
-    // Return a streaming response
-    return new Response(stream, { headers });
   } catch (error) {
     console.error("Error converting text to speech:", error);
     return new Response(
       JSON.stringify({ error: "Error converting text to speech" }),
-      { status: 500 }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

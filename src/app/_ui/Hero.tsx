@@ -5,8 +5,10 @@ import Image from "next/image";
 import PersonalityName from "./PersonalityName";
 import { IoCheckbox } from "react-icons/io5";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const Hero: React.FC = () => {
+  const router = useRouter();
   const [currentImage, setCurrentImage] = useState(0);
   const images = [
     "/hero/personality-1-friendly.svg",
@@ -29,6 +31,11 @@ const Hero: React.FC = () => {
     hidden: { opacity: 0, x: "100%", scale: 0.5 },
     visible: { opacity: 1, x: 0, scale: 1 },
     exit: { opacity: 0, x: "100%", scale: 0.5 },
+  };
+
+  const handleSignUp = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    router.push("/onboarding");
   };
 
   return (
@@ -92,7 +99,8 @@ const Hero: React.FC = () => {
                 Schedule a demo
               </a>
               <a
-                href="#sign-up"
+                href="/onboarding"
+                onClick={handleSignUp}
                 className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex text-[#6d67e4]"
               >
                 Sign up for free
