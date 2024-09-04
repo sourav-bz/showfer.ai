@@ -28,14 +28,6 @@ export default function Playground() {
 
   return (
     <div className="flex flex-col h-screen relative">
-      <header className="bg-white shadow-sm p-4">
-        <Image
-          src="/branded-logo/dark.svg"
-          alt="Showfer.ai Logo"
-          width={150}
-          height={40}
-        />
-      </header>
       <div className="flex-1 p-4 overflow-hidden">
         <h1 className="text-2xl font-bold mb-4">Playground</h1>
         <div className="mb-4">

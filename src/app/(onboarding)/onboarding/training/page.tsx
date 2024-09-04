@@ -7,14 +7,6 @@ export default function BotTraining() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="mb-8">
-        <Image
-          src="/brand-logo/dark.svg"
-          alt="Brand Logo"
-          width={150}
-          height={40}
-        />
-      </div>
       <h1 className="text-2xl font-bold mb-4">Train your website here.</h1>
       <p className="mb-6">
         Give your own personality to your website by training them here or you

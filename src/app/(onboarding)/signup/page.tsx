@@ -22,14 +22,15 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex h-full bg-white rounded-lg">
       <div className="hidden lg:block relative w-0 flex-1">
-        <div className="absolute inset-0 bg-white">
-          <div className="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-extrabold text-gray-900 mb-8">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 right-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[#E3E4EC] to-transparent"></div>
+          <div className="max-w-2xl px-[70px] h-full flex flex-col justify-center">
+            <h2 className="text-2xl font-medium text-gray-900 mb-[40px]">
               Let&apos;s get started!
             </h2>
-            <ul className="space-y-6">
+            <ul className="space-y-[32px]">
               <ListItem
                 text="Manage all support channels from one screen"
                 description="Showfer.ai integrates with WhatsApp, IG DMs, Facebook Messenger, IG & FB post comments, Email & Live Chat."
@@ -50,27 +51,24 @@ export default function Signup() {
           </div>
         </div>
       </div>
-      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
+      <div className="flex-1 flex flex-col justify-center px-4 items-center sm:px-6 lg:flex-none lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-sm lg:w-96">
           <div className="mb-8">
-            <Image
-              src="./brand-logo/dark.svg"
-              alt="Showfer.ai Logo"
-              width={150}
-              height={40}
-            />
             {!isVerifying && (
-              <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+              <h2 className="text-2xl font-medium text-gray-900 text-center">
                 Welcome to Showfer.ai 👋
               </h2>
             )}
           </div>
           {!isVerifying ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-6 shadow-lg p-6 rounded-[20px] border border-[#E3E4EC"
+            >
               <div>
                 <label
                   htmlFor="fullName"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-normal text-gray-700"
                 >
                   Full Name
                 </label>
@@ -79,14 +77,14 @@ export default function Signup() {
                   name="fullName"
                   type="text"
                   required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full px-[15px] py-[10px] rounded-md focus:outline-none focus:ring-0 bg-[#F0F2F7] placeholder-gray-400 placeholder-opacity-100 font-light"
                   placeholder="Full legal name"
                 />
               </div>
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-normal text-gray-700"
                 >
                   Email address
                 </label>
@@ -95,7 +93,7 @@ export default function Signup() {
                   name="email"
                   type="email"
                   required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full px-[15px] py-[10px] rounded-md focus:outline-none focus:ring-0 bg-[#F0F2F7] placeholder-gray-400 placeholder-opacity-100 font-light"
                   placeholder="example@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -104,7 +102,7 @@ export default function Signup() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-normal text-gray-700"
                 >
                   Password
                 </label>
@@ -113,14 +111,14 @@ export default function Signup() {
                   name="password"
                   type="password"
                   required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full px-[15px] py-[10px] rounded-md focus:outline-none focus:ring-0 bg-[#F0F2F7] placeholder-gray-400 placeholder-opacity-100 font-light"
                   placeholder="At least 8 characters"
                 />
               </div>
               <div>
                 <button
                   type="submit"
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="w-full flex justify-center p-[10px] border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#6D67E4] hover:bg-[#5652b5] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6D67E4]"
                 >
                   Create Account
                 </button>
@@ -128,35 +126,58 @@ export default function Signup() {
             </form>
           ) : (
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-medium text-gray-900 text-center mb-[40px]">
                 Please check your email
               </h2>
-              <div className="mb-4">
-                <svg
-                  className="mx-auto h-12 w-12 text-green-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+              <div className="flex flex-col items-center mb-[40px] p-[30px] rounded-[20px] border border-[#E3E4EC] shadow-lg">
+                <div className="mb-[30px]">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="60"
+                    height="60"
+                    viewBox="0 0 60 60"
+                    fill="none"
+                  >
+                    <path
+                      d="M30 5C16.225 5 5 16.225 5 30C5 43.775 16.225 55 30 55C43.775 55 55 43.775 55 30C55 16.225 43.775 5 30 5ZM41.95 24.25L27.775 38.425C27.425 38.775 26.95 38.975 26.45 38.975C25.95 38.975 25.475 38.775 25.125 38.425L18.05 31.35C17.325 30.625 17.325 29.425 18.05 28.7C18.775 27.975 19.975 27.975 20.7 28.7L26.45 34.45L39.3 21.6C40.025 20.875 41.225 20.875 41.95 21.6C42.675 22.325 42.675 23.5 41.95 24.25Z"
+                      fill="#17B26A"
+                    />
+                  </svg>
+                </div>
+                <div className="text-[16px] font-[400] text-gray-600 mb-[10px]">
+                  We&apos;ve sent a sign-up link to
+                </div>
+                <div className="flex items-center font-medium px-[15px] py-[10px] rounded-md bg-[#F0F2F7] mb-[30px]">
+                  <div className="mr-[10px]">{email}</div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="21"
+                    height="20"
+                    viewBox="0 0 21 20"
+                    fill="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M15.1653 0.0103353C16.6038 -0.0795717 18.0224 0.419911 19.0913 1.3989C20.0703 2.46779 20.5697 3.88633 20.4898 5.33483V14.6652C20.5797 16.1137 20.0703 17.5322 19.1013 18.6011C18.0323 19.5801 16.6038 20.0796 15.1653 19.9897H5.83487C4.38636 20.0796 2.96781 19.5801 1.89891 18.6011C0.919915 17.5322 0.420428 16.1137 0.510335 14.6652V5.33483C0.420428 3.88633 0.919915 2.46779 1.89891 1.3989C2.96781 0.419911 4.38636 -0.0795717 5.83487 0.0103353H15.1653ZM9.48113 14.845L16.2042 8.10196C16.8136 7.4826 16.8136 6.48364 16.2042 5.87427L14.9056 4.57561C14.2862 3.95625 13.2872 3.95625 12.6679 4.57561L11.9985 5.25491C11.8986 5.35481 11.8986 5.52463 11.9985 5.62453C11.9985 5.62453 13.5869 7.20289 13.6169 7.24285C13.7268 7.36273 13.7967 7.52256 13.7967 7.70238C13.7967 8.06201 13.507 8.36169 13.1374 8.36169C12.9675 8.36169 12.8077 8.29177 12.6978 8.18188L11.0295 6.5236C10.9496 6.44368 10.8098 6.44368 10.7298 6.5236L5.96474 11.2887C5.63507 11.6183 5.44527 12.0579 5.43528 12.5274L5.37534 14.8949C5.37534 15.0248 5.4153 15.1447 5.50521 15.2346C5.59512 15.3245 5.71499 15.3744 5.84486 15.3744H8.19245C8.67196 15.3744 9.13149 15.1846 9.48113 14.845Z"
+                      fill="#6D67E4"
+                    />
+                  </svg>
+                </div>
+                <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#E3E4EC] to-transparent mb-[30px]"></div>
+                <div className="text-[16px] font-[400] text-black mb-[10px]">
+                  Didn&apos;t get a link?
+                </div>
+                <div className="text-[#8F93A5] text-sm">
+                  Check your spam/junk folder, or{" "}
+                  <button
+                    onClick={() => setIsVerifying(false)}
+                    className="text-sm text-indigo-600 hover:text-indigo-500 inline"
+                  >
+                    try again
+                  </button>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 mb-4">
-                We&apos;ve sent a sign-up link to
-                <br />
-                <span className="font-medium">{email}</span>
-              </p>
-              <button
-                onClick={() => setIsVerifying(false)}
-                className="text-sm text-indigo-600 hover:text-indigo-500 mb-4"
-              >
-                Didn&apos;t get a link? Click here to try again
-              </button>
               <button
                 onClick={handleNext}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -171,14 +192,27 @@ export default function Signup() {
                 Already have an account?{" "}
                 <Link
                   href="/login"
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
+                  className="font-normal text-[#6D67E4] hover:text-[#5652b5]"
                 >
                   Sign in here
                 </Link>
               </p>
               <p className="mt-4 text-center text-xs text-gray-500">
-                By creating an account, you agree to Showfer.ai&apos;s Terms of
-                Service and Privacy Policy.
+                By creating an account, you agree to Showfer.ai&apos;s{" "}
+                <Link
+                  href="/terms-and-conditions"
+                  className="text-[#6D67E4] hover:text-[#5652b5]"
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy-policy"
+                  className="text-[#6D67E4] hover:text-[#5652b5]"
+                >
+                  Privacy Policy
+                </Link>
+                .
               </p>
             </>
           )}
@@ -198,21 +232,16 @@ function ListItem({
   return (
     <li className="flex">
       <div className="flex-shrink-0">
-        <svg
-          className="h-6 w-6 text-indigo-600"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-            clipRule="evenodd"
-          />
-        </svg>
+        <Image
+          src="/icons/tick-square.svg"
+          alt="Tick square"
+          width={24}
+          height={24}
+        />
       </div>
       <div className="ml-3">
-        <h3 className="text-lg font-medium text-gray-900">{text}</h3>
-        <p className="mt-1 text-sm text-gray-500">{description}</p>
+        <h3 className="text-lg font-normal text-gray-900">{text}</h3>
+        <p className="mt-1 text-lg font-light text-[#8F93A5]">{description}</p>
       </div>
     </li>
   );

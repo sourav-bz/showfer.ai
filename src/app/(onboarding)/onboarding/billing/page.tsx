@@ -62,15 +62,6 @@ export default function Billing() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center mb-8">
-        <Image
-          src="/brand-logo/dark.svg"
-          alt="Showfer.ai Logo"
-          width={150}
-          height={40}
-        />
-      </div>
-
       {!showOrderSummary ? (
         <>
           <h1 className="text-3xl font-bold mb-4">

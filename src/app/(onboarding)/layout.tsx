@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "../globals.css";
+import Header from "./_ui/Header";
 
-const inter = Poppins({ subsets: ["latin"], weight: ["400", "700"] });
+const inter = Poppins({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+});
 
 export const metadata: Metadata = {
   title: "Showfer.ai - AI mascot for your brand",
@@ -20,8 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body
-        className={`${inter.className} flex flex-col min-h-screen bg-[#F0F2F7]`}
+        className={`${inter.className} flex flex-col h-screen bg-[#F0F2F7] p-[14px] `}
       >
+        <Header />
         <div className="flex-grow">{children}</div>
       </body>
     </html>

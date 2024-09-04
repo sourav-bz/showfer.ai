@@ -4,15 +4,6 @@ import Link from "next/link";
 export default function PersonalitySettings() {
   return (
     <div className="flex flex-col h-screen">
-      <header className="p-4">
-        <Image
-          src="/brand-logo/dark.svg"
-          alt="Showfer.ai Logo"
-          width={120}
-          height={40}
-        />
-      </header>
-
       <main className="flex-grow flex">
         <div className="w-2/3 p-8">
           <h1 className="text-2xl font-bold mb-6">
