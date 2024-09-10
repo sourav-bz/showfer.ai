@@ -94,7 +94,7 @@ const Hero: React.FC = () => {
                 Schedule a demo
               </a>
               <a
-                href="/signup"
+                href="/login"
                 className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex text-[#6d67e4]"
               >
                 Sign up for free

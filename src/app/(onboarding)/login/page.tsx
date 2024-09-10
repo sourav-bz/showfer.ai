@@ -2,24 +2,73 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function Signup() {
   const router = useRouter();
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClientComponentClient();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        setIsSuccess(true);
+        setTimeout(() => {
+          router.push("/onboarding/personality");
+        }, 2000);
+      }
+      setIsLoading(false);
+    };
+
+    checkSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN") {
+        setIsSuccess(true);
+        setTimeout(() => {
+          router.push("/onboarding/personality");
+        }, 2000);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase, router]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsVerifying(true);
-    // Here you would typically send a verification email
-    // For now, we're just changing the state
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/api/callback`,
+          data: { full_name: fullName },
+        },
+      });
+
+      if (error) throw error;
+      // Magic link sent successfully
+    } catch (error) {
+      console.error("Error sending magic link:", error);
+      setIsVerifying(false);
+    }
   };
 
-  const handleNext = () => {
-    router.push("/onboarding/personality");
-  };
+  if (isLoading) {
+    return <div>Loading...</div>; // or your custom loader
+  }
 
   return (
     <div className="flex h-full bg-white rounded-lg">
@@ -54,16 +103,16 @@ export default function Signup() {
       <div className="flex-1 flex flex-col justify-center px-4 items-center sm:px-6 lg:flex-none lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-sm lg:w-96">
           <div className="mb-8">
-            {!isVerifying && (
+            {!isVerifying && !isSuccess && (
               <h2 className="text-2xl font-medium text-gray-900 text-center">
                 Welcome to Showfer.ai 👋
               </h2>
             )}
           </div>
-          {!isVerifying ? (
+          {!isVerifying && !isSuccess ? (
             <form
               onSubmit={handleSubmit}
-              className="space-y-6 shadow-lg p-6 rounded-[20px] border border-[#E3E4EC"
+              className="space-y-6 shadow-lg p-6 rounded-[20px] border border-[#E3E4EC]"
             >
               <div>
                 <label
@@ -79,6 +128,8 @@ export default function Signup() {
                   required
                   className="mt-1 block w-full px-[15px] py-[10px] rounded-md focus:outline-none focus:ring-0 bg-[#F0F2F7] placeholder-gray-400 placeholder-opacity-100 font-light"
                   placeholder="Full legal name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                 />
               </div>
               <div>
@@ -100,22 +151,6 @@ export default function Signup() {
                 />
               </div>
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-normal text-gray-700"
-                >
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="mt-1 block w-full px-[15px] py-[10px] rounded-md focus:outline-none focus:ring-0 bg-[#F0F2F7] placeholder-gray-400 placeholder-opacity-100 font-light"
-                  placeholder="At least 8 characters"
-                />
-              </div>
-              <div>
                 <button
                   type="submit"
                   className="w-full flex justify-center p-[10px] border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#6D67E4] hover:bg-[#5652b5] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6D67E4]"
@@ -124,25 +159,15 @@ export default function Signup() {
                 </button>
               </div>
             </form>
-          ) : (
+          ) : isVerifying && !isSuccess ? (
             <div className="text-center">
               <h2 className="text-2xl font-medium text-gray-900 text-center mb-[40px]">
                 Please check your email
               </h2>
               <div className="flex flex-col items-center mb-[40px] p-[30px] rounded-[20px] border border-[#E3E4EC] shadow-lg">
                 <div className="mb-[30px]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="60"
-                    height="60"
-                    viewBox="0 0 60 60"
-                    fill="none"
-                  >
-                    <path
-                      d="M30 5C16.225 5 5 16.225 5 30C5 43.775 16.225 55 30 55C43.775 55 55 43.775 55 30C55 16.225 43.775 5 30 5ZM41.95 24.25L27.775 38.425C27.425 38.775 26.95 38.975 26.45 38.975C25.95 38.975 25.475 38.775 25.125 38.425L18.05 31.35C17.325 30.625 17.325 29.425 18.05 28.7C18.775 27.975 19.975 27.975 20.7 28.7L26.45 34.45L39.3 21.6C40.025 20.875 41.225 20.875 41.95 21.6C42.675 22.325 42.675 23.5 41.95 24.25Z"
-                      fill="#17B26A"
-                    />
-                  </svg>
+                  {/* Replace with your loader component */}
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
                 </div>
                 <div className="text-[16px] font-[400] text-gray-600 mb-[10px]">
                   We&apos;ve sent a sign-up link to
@@ -178,20 +203,39 @@ export default function Signup() {
                   </button>
                 </div>
               </div>
-              <button
-                onClick={handleNext}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Next
-              </button>
+            </div>
+          ) : (
+            <div className="text-center">
+              <h2 className="text-2xl font-medium text-gray-900 text-center mb-[40px]">
+                Sign up successful!
+              </h2>
+              <div className="flex flex-col items-center mb-[40px] p-[30px] rounded-[20px] border border-[#E3E4EC] shadow-lg">
+                <div className="mb-[30px]">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="60"
+                    height="60"
+                    viewBox="0 0 60 60"
+                    fill="none"
+                  >
+                    <path
+                      d="M30 5C16.225 5 5 16.225 5 30C5 43.775 16.225 55 30 55C43.775 55 55 43.775 55 30C55 16.225 43.775 5 30 5ZM41.95 24.25L27.775 38.425C27.425 38.775 26.95 38.975 26.45 38.975C25.95 38.975 25.475 38.775 25.125 38.425L18.05 31.35C17.325 30.625 17.325 29.425 18.05 28.7C18.775 27.975 19.975 27.975 20.7 28.7L26.45 34.45L39.3 21.6C40.025 20.875 41.225 20.875 41.95 21.6C42.675 22.325 42.675 23.5 41.95 24.25Z"
+                      fill="#17B26A"
+                    />
+                  </svg>
+                </div>
+                <div className="text-[16px] font-[400] text-gray-600 mb-[10px]">
+                  Redirecting to onboarding...
+                </div>
+              </div>
             </div>
           )}
-          {!isVerifying && (
+          {!isVerifying && !isSuccess && (
             <>
               <p className="mt-4 text-center text-sm text-gray-600">
                 Already have an account?{" "}
                 <Link
-                  href="/login"
+                  href="/signin"
                   className="font-normal text-[#6D67E4] hover:text-[#5652b5]"
                 >
                   Sign in here

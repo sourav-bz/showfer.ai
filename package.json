@@ -9,8 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@cartesia/cartesia-js": "^1.0.3",
     "@headlessui/react": "^2.1.2",
     "@heroicons/react": "^2.1.5",
+    "@paddle/paddle-js": "^1.2.1",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/auth-helpers-react": "^0.5.0",
+    "@supabase/supabase-js": "^2.45.3",
     "avvvatars-react": "^0.4.2",
     "axios": "^1.7.5",
     "framer-motion": "^11.3.30",

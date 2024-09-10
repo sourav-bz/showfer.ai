@@ -1,7 +1,9 @@
 "use client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { initializePaddle, Paddle } from "@paddle/paddle-js";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"; // Add these imports
 
 const plans = [
   {
@@ -32,7 +34,7 @@ const plans = [
     popular: true,
   },
   {
-    name: "Enterprise",
+    name: "Custom",
     price: 749,
     features: [
       "50,000 messages per month",
@@ -51,17 +53,80 @@ type Plan = (typeof plans)[number];
 export default function Billing() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [showOrderSummary, setShowOrderSummary] = useState(false);
+  const [paddle, setPaddle] = useState<Paddle>();
+  const supabase = createClientComponentClient();
+  const [email, setEmail] = useState<string | undefined>();
 
-  const handleGetStarted = (plan: (typeof plans)[number]) => {
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        const userEmail = session.user.email;
+        setEmail(userEmail);
+      }
+    };
+
+    checkSession();
+
+    console.log("Initializing Paddle...");
+    initializePaddle({
+      environment: "sandbox",
+      token: "test_90951bc0a2d2dd7842ab6866645",
+    })
+      .then((paddleInstance: Paddle | undefined) => {
+        if (paddleInstance) {
+          console.log("Paddle initialized successfully");
+          setPaddle(paddleInstance);
+        } else {
+          console.error("Failed to initialize Paddle");
+        }
+      })
+      .catch((error) => {
+        console.error("Error initializing Paddle:", error);
+      });
+  }, []);
+
+  const handleGetStarted = (plan: Plan) => {
     setSelectedPlan(plan);
-    setShowOrderSummary(true);
+    if (paddle && email) {
+      paddle.Checkout.open({
+        items: [{ priceId: getPriceIdForPlan(plan), quantity: 1 }],
+        customer: {
+          email: email,
+        },
+      });
+    } else if (paddle) {
+      paddle.Checkout.open({
+        items: [{ priceId: getPriceIdForPlan(plan), quantity: 1 }],
+      });
+    } else {
+      console.error("Paddle is not initialized or user email is not available");
+      if (!paddle) console.error("Paddle is not initialized");
+      if (!email) console.error("User email is not available");
+    }
+  };
+
+  const getPriceIdForPlan = (plan: Plan) => {
+    // Replace with actual price IDs from Paddle
+    switch (plan.name) {
+      case "Basic":
+        return "pri_01j7b2kb90snbp7ppsdfs0jqpf";
+      case "Pro":
+        return "pri_01j7b2m7e78h8pr6866wv2aedp";
+      case "Custom":
+        return "pri_01j7b2nbrbbv13wcg6kzwnz8q0";
+      default:
+        throw new Error("Invalid plan");
+    }
   };
 
   const handleBackToPlans = () => {
     setShowOrderSummary(false);
   };
-
-  const router = useRouter();
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg">
