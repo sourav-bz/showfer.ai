@@ -11,8 +11,8 @@ import Lottie from "lottie-react";
 import spinnerAnimation from "../../../../../public/loader/spinner.json";
 
 export default function Page() {
-  const [selectedTab, setSelectedTab] = useState("Personality");
   const personalitySettings = usePersonalityStore();
+  const { selectedTab, setSelectedTab } = personalitySettings;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<Voice[]>([]);

@@ -2,7 +2,7 @@ import Image from "next/image";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import styled from "styled-components";
-import { usePersonalityStore } from "./store";
+import { characters, usePersonalityStore } from "./store";
 
 export const ColorPickerInput = styled.input`
   position: absolute;
@@ -26,25 +26,14 @@ export const ColorPickerInput = styled.input`
   }
 `;
 
-const characters = [
-  { id: 1, name: "Dr. Aman", avatar: "/personality/trustworthy-bg.jpg" },
-  { id: 2, name: "Imogen", avatar: "/personality/creative-bg.jpg" },
-  { id: 3, name: "Conrad", avatar: "/personality/friendly-bg.jpg" },
-  { id: 4, name: "Edison", avatar: "/personality/innovative-bg.jpg" },
-  { id: 5, name: "Buddy", avatar: "/personality/playful-bg.jpg" },
-  { id: 6, name: "Griffin", avatar: "/personality/rugged-bg.jpg" },
-];
-
 export default function PersonalitySettings() {
   const {
     character,
     visualizer,
     dimensions,
-    primaryColor,
     setCharacter,
     setVisualizer,
     setDimensions,
-    setPrimaryColor,
   } = usePersonalityStore();
 
   return (
@@ -141,15 +130,25 @@ export default function PersonalitySettings() {
         <div className="ml-auto flex items-center bg-[#F0F2F7] rounded-[15px] p-2 w-[200px] h-[50px]">
           <input
             type="text"
-            value={primaryColor}
-            onChange={(e) => setPrimaryColor(e.target.value)}
+            value={character.primaryColor}
+            onChange={(e) =>
+              setCharacter({
+                ...character,
+                primaryColor: e.target.value,
+              })
+            }
             className="w-20 bg-transparent text-center"
           />
           <div className="ml-auto relative">
             <ColorPickerInput
               type="color"
-              value={primaryColor}
-              onChange={(e) => setPrimaryColor(e.target.value)}
+              value={character.primaryColor}
+              onChange={(e) =>
+                setCharacter({
+                  ...character,
+                  primaryColor: e.target.value,
+                })
+              }
             />
           </div>
         </div>

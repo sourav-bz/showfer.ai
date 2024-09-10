@@ -3,6 +3,25 @@ import VoiceOrb from "./VoiceOrb";
 import { useEffect, useRef, useState } from "react";
 import OpenAI from "openai";
 import { usePlaygroundStore } from "../../_store/PlaygroundStore";
+import {
+  characters,
+  usePersonalityStore,
+} from "@/app/(onboarding)/onboarding/personality/store";
+import { Canvas, useFrame } from "@react-three/fiber";
+import {
+  OrbitControls,
+  Environment,
+  PerspectiveCamera,
+} from "@react-three/drei";
+import { Center } from "@react-three/drei";
+import Aman from "@/app/_ui/Characters/Aman";
+import Conrad from "@/app/_ui/Characters/Conrad";
+import Imogen from "@/app/_ui/Characters/Imogen";
+import Edison from "@/app/_ui/Characters/Edison";
+import Buddy from "@/app/_ui/Characters/Buddy";
+import Griffin from "@/app/_ui/Characters/Griffin";
+import Grennie from "@/app/_ui/Characters/Grennie";
+import Sassy from "@/app/_ui/Characters/Sassy";
 
 const configuration = {
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
@@ -30,6 +49,48 @@ export default function VoiceInterface({
   const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [message, setMessage] = useState("");
   const { messageThread, setMessageThread } = usePlaygroundStore();
+
+  const { visualizer, dimensions, character } = usePersonalityStore();
+  const [storyState, setStoryState] = useState<"user" | "assistant">(
+    "assistant"
+  );
+
+  const getComponentForCharacter = (character: any) => {
+    switch (character.id) {
+      case 1:
+        return (
+          <Aman position={[0, 0, 0]} scale={1.5} storyState={storyState} />
+        );
+      case 2:
+        return (
+          <Imogen position={[0, 0, 0]} scale={1} storyState={storyState} />
+        );
+      case 3:
+        return (
+          <Conrad position={[0, 0, 0]} scale={0.8} storyState={storyState} />
+        );
+      case 4:
+        return (
+          <Edison position={[0, 0, 0]} scale={1} storyState={storyState} />
+        );
+      case 5:
+        return (
+          <Buddy position={[0, 0, 0]} scale={0.7} storyState={storyState} />
+        );
+      case 6:
+        return (
+          <Griffin position={[0, 0, 0]} scale={0.5} storyState={storyState} />
+        );
+      case 7:
+        return (
+          <Grennie position={[0, 0, 0]} scale={1} storyState={storyState} />
+        );
+      case 8:
+        return <Sassy position={[0, 0, 0]} scale={1} storyState={storyState} />;
+      default:
+        return null;
+    }
+  };
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -163,6 +224,23 @@ export default function VoiceInterface({
     audioRef.current = typeof Audio !== "undefined" ? new Audio() : null;
   }, []);
 
+  const NodCamera = ({ storyState }: { storyState: "user" | "assistant" }) => {
+    const isVertical = useRef(Math.random() < 0.5);
+
+    useFrame((state) => {
+      if (storyState === "assistant") {
+        const movement = Math.sin(state.clock.elapsedTime * 4) * 0.5;
+        if (isVertical.current) {
+          state.camera.position.y = movement;
+        } else {
+          state.camera.position.x = movement;
+        }
+      }
+    });
+
+    return null;
+  };
+
   return (
     <div
       className={` ${
@@ -171,7 +249,34 @@ export default function VoiceInterface({
     >
       {!mobile && (
         <div className="mb-8">
-          <VoiceOrb width={200} height={200} />
+          {visualizer === "Orb" ? (
+            <VoiceOrb width={200} height={200} />
+          ) : dimensions === "2D" ? (
+            <Image
+              src={character.avatar}
+              width={200}
+              height={200}
+              alt={character.name}
+              className="rounded-full"
+            />
+          ) : (
+            <div style={{ width: 250, height: 300 }}>
+              <Canvas shadows>
+                <color attach="background" args={["#fff"]} />
+                <PerspectiveCamera
+                  makeDefault
+                  position={[0, 1.5, 5.5]}
+                  fov={45}
+                />
+                <NodCamera storyState={storyState} />
+                <OrbitControls enableZoom={false} enablePan={false} />
+                <ambientLight intensity={0.5} />
+                <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
+                <Center>{getComponentForCharacter(character)}</Center>
+                <Environment preset="sunset" />
+              </Canvas>
+            </div>
+          )}
         </div>
       )}
       <button disabled={isRecording} onClick={() => handleStartListening()}>

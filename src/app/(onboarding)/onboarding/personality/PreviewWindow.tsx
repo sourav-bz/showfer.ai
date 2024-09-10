@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import TextInterface from "@/app/(dashboard)/playground/_ui/TextInterface";
-import VoiceInterface from "@/app/(dashboard)/playground/_ui/VoiceInterface";
+import { usePersonalityStore } from "./store";
+import IconSVG from "@/app/_ui/IconSvg";
+import VoiceInterface from "./VoiceInterface";
 
 const PreviewWindow = () => {
   const [isChatMode, setIsChatMode] = useState(false);
   const mobile = false;
-
+  const { character } = usePersonalityStore();
   return (
     <div
       className={`bg-white shadow-md overflow-hidden flex flex-col ${
@@ -15,7 +17,10 @@ const PreviewWindow = () => {
           : "w-[330px] h-[530px] mb-4 rounded-lg"
       }`}
     >
-      <div className="bg-[#6D67E4] p-4 flex justify-between items-center">
+      <div
+        className="p-4 flex justify-between items-center"
+        style={{ backgroundColor: character.primaryColor }}
+      >
         <div className="items-center">
           <Image
             src="/brand-logo/light.svg"
@@ -30,13 +35,12 @@ const PreviewWindow = () => {
         </div>
         <button
           onClick={() => setIsChatMode(!isChatMode)}
-          className="bg-white text-indigo-500 px-2 py-1 rounded-lg text-sm font-medium flex items-center"
+          className={`bg-white px-2 py-1 rounded-lg text-sm font-medium flex items-center`}
+          style={{ color: character.primaryColor }}
         >
-          <Image
-            src={`/playground/${isChatMode ? "voice" : "message-text"}.svg`}
-            width={18}
-            height={18}
-            alt={isChatMode ? "microphone" : "chat"}
+          <IconSVG
+            name={isChatMode ? "voice" : "message-text"}
+            color={character.primaryColor}
             className="mr-1"
           />
           {isChatMode ? "Voice" : "Chat"}
