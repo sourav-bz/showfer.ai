@@ -56,12 +56,25 @@ export default function Page() {
     setIsLoading(true);
     try {
       const method = personalitySettings.id ? "PUT" : "POST";
+
+      // Create a new object with only the required fields
+      const settingsToSave = {
+        id: personalitySettings.id,
+        character: personalitySettings.character,
+        visualizer: personalitySettings.visualizer,
+        dimensions: personalitySettings.dimensions,
+        primaryColor: personalitySettings.character.primaryColor,
+        voice: personalitySettings.voice,
+        speed: personalitySettings.selectedSpeed,
+        emotionConfig: personalitySettings.emotionConfig,
+      };
+
       const response = await fetch("/api/personality-settings", {
         method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(personalitySettings),
+        body: JSON.stringify(settingsToSave),
       });
 
       if (!response.ok) {
