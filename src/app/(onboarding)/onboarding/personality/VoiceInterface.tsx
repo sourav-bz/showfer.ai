@@ -20,6 +20,8 @@ import VoiceOrb from "@/app/(dashboard)/playground/_ui/VoiceOrb";
 import IconSVG from "@/app/_ui/IconSvg";
 import { useTTS } from "@cartesia/cartesia-js/react";
 import { EmotionControl } from "@cartesia/cartesia-js";
+import { ConradT } from "@/app/_ui/Characters/ConradT";
+import { ConradTT } from "@/app/_ui/Characters/ConradTT";
 
 export default function VoiceInterface({ mobile }: { mobile: boolean }) {
   const [isRecording, setIsRecording] = useState(false);
@@ -53,7 +55,7 @@ export default function VoiceInterface({ mobile }: { mobile: boolean }) {
         );
       case 3:
         return (
-          <Conrad position={[0, 0, 0]} scale={0.8} storyState={storyState} />
+          <ConradTT position={[0, 0, 0]} scale={0.8} storyState={storyState} />
         );
       case 4:
         return (

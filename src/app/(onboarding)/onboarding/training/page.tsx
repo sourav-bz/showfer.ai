@@ -4,6 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import axios from "axios";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { comma } from "postcss/lib/list";
+import { parse } from "node-html-parser";
+import { createWorker } from "tesseract.js";
+
+const getFileName = (link: string): string => {
+  const hostname = new URL(link).hostname;
+  return `links/${hostname.replace(/\./g, "-")}-links.md`;
+};
 
 export default function BotTraining() {
   const router = useRouter();
@@ -13,29 +22,189 @@ export default function BotTraining() {
   const [selectedLinks, setSelectedLinks] = useState<Set<string>>(new Set()); // New state for selected links
   const [selectAll, setSelectAll] = useState(false);
 
+  const supabase = createClientComponentClient();
+
+  // Add this function to get the user session
+  const getUserSession = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    return user;
+  };
+
   const handleFetchLinks = async () => {
     if (!link) {
       return;
     }
-    const response = await axios.get("https://app.scrapingbee.com/api/v1/", {
-      params: {
-        api_key:
-          "67UFI64EESFW50EFRX6ZP9ROHUW1FC4U685A3PBDR6QQZZA9PR45KJVWHMTM0D87O6733AYT0CAYDW2N",
-        url: link,
-        extract_rules: '{"all_links":{"selector":"a@href","type":"list"}}',
-      },
-    });
 
-    const uniqueLinks = Array.from(new Set(response.data.all_links));
-    setLinks(uniqueLinks);
+    const fileName = getFileName(link);
+
+    // Get the user
+    const user = await getUserSession();
+    console.log("User:", user);
+
+    if (!user) {
+      console.error("User not authenticated");
+      // Handle unauthenticated user (e.g., redirect to login)
+      router.push("/login"); // Adjust the path as needed
+      return;
+    }
+
+    // Check if links exist in Supabase storage
+    const { data, error } = await supabase.storage
+      .from("showfer")
+      .download(fileName);
+
+    if (data) {
+      console.log("file exists", data);
+      // If file exists, read its content
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        const storedLinks = content.split("\n").filter(Boolean);
+        setLinks(storedLinks);
+      };
+      reader.readAsText(data);
+    } else {
+      console.log("file does not exist");
+      // If file doesn't exist, fetch links from ScrapingBee
+      const response = await axios.get("https://app.scrapingbee.com/api/v1/", {
+        params: {
+          api_key:
+            "67UFI64EESFW50EFRX6ZP9ROHUW1FC4U685A3PBDR6QQZZA9PR45KJVWHMTM0D87O6733AYT0CAYDW2N",
+          url: link,
+          extract_rules: '{"all_links":{"selector":"a@href","type":"list"}}',
+        },
+      });
+
+      const uniqueLinks = Array.from(new Set(response.data.all_links));
+      setLinks(uniqueLinks);
+
+      // Create and store the Markdown file
+      const content = uniqueLinks.join("\n");
+      const { error: uploadError } = await supabase.storage
+        .from("showfer")
+        .upload(fileName, content, {
+          contentType: "text/markdown",
+          upsert: true, // Add this line to allow overwriting existing files
+        });
+      if (uploadError) {
+        console.error("Error storing links:", uploadError);
+      }
+    }
   };
 
-  const handleStartTraining = () => {
+  const handleStartTraining = async () => {
     console.log("Starting training");
-    //scrape each links of their content and images
-    //perform OCR on each image and structure the content for LLM training
-    //create openai assistant with the content and images
-    //store the assistant id and the document in supabase storage and reference it in the assitant table
+
+    const user = await getUserSession();
+    if (!user) {
+      console.error("User not authenticated");
+      router.push("/login");
+      return;
+    }
+
+    const baseUrl = new URL(link).origin;
+    const domainFolder = baseUrl
+      .replace(/^https?:\/\//, "")
+      .replace(/\./g, "-");
+
+    console.log("domainFolder", domainFolder);
+    console.log("selectedLinks", selectedLinks);
+
+    // Convert Set to Array and process each link
+    const selectedLinksArray = Array.from(selectedLinks);
+    for (let i = 0; i < selectedLinksArray.length; i++) {
+      const selectedLink = selectedLinksArray[i];
+      console.log(
+        `Processing link ${i + 1}/${selectedLinksArray.length}: ${selectedLink}`
+      );
+
+      const fullUrl = selectedLink.startsWith("/")
+        ? `${baseUrl}${selectedLink}`
+        : selectedLink;
+      const fileName = `${fullUrl.split("/").pop() || "index"}.md`;
+
+      console.log("fullUrl", fullUrl);
+      console.log("fileName", fileName);
+
+      try {
+        // Scrape content and images
+        const response = await axios.get(
+          "https://app.scrapingbee.com/api/v1/",
+          {
+            params: {
+              api_key:
+                "67UFI64EESFW50EFRX6ZP9ROHUW1FC4U685A3PBDR6QQZZA9PR45KJVWHMTM0D87O6733AYT0CAYDW2N",
+              url: fullUrl,
+              extract_rules:
+                '{"content":"body","images":{"selector":"img","type":"list","output":"@src"}}',
+            },
+          }
+        );
+
+        let content = response.data.content;
+        const images = response.data.images;
+
+        console.log("image and content scrapped");
+
+        // Perform OCR on images
+        let imageTexts = [];
+        try {
+          const worker = await createWorker("eng");
+          imageTexts = await Promise.all(
+            images.map(async (img) => {
+              try {
+                const {
+                  data: { text },
+                } = await worker.recognize(img);
+                return text;
+              } catch (ocrError) {
+                console.error(`OCR failed for image: ${img}`, ocrError);
+                return "OCR failed for this image";
+              }
+            })
+          );
+          await worker.terminate();
+          console.log("OCR done on images");
+        } catch (workerError) {
+          console.error("Error creating or using OCR worker:", workerError);
+          console.log("Skipping OCR due to error");
+        }
+
+        // Format content
+        content = content.replace(/\s+/g, " ").trim();
+
+        // Create markdown content
+        let markdownContent = `# ${fullUrl}\n\n## Content\n\n${content}\n\n## Images\n\n`;
+        images.forEach((img, index) => {
+          markdownContent += `![Image ${index + 1}](${img})\n\n${
+            imageTexts[index]
+          }\n\n`;
+        });
+
+        console.log("markdown content created");
+
+        // Store file in Supabase
+        const { error: uploadError } = await supabase.storage
+          .from("showfer")
+          .upload(`${domainFolder}/${fileName}`, markdownContent, {
+            contentType: "text/markdown",
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error(`Error storing file for ${fullUrl}:`, uploadError);
+        } else {
+          console.log(`Successfully stored file for ${fullUrl}`);
+        }
+      } catch (error) {
+        console.error(`Error processing ${fullUrl}:`, error);
+      }
+    }
+
+    // TODO: Create OpenAI assistant with the content and images
+    // TODO: Store the assistant ID and document reference in Supabase
   };
 
   const toggleLinkSelection = (link: string) => {
@@ -172,7 +341,7 @@ export default function BotTraining() {
                 {links.map((link, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between bg-white rounded mb-[15px]"
+                    className="flex items-center justify-between bg-white rounded mb-[15px] relative group"
                   >
                     <Image
                       src={
@@ -187,6 +356,9 @@ export default function BotTraining() {
                       onClick={() => toggleLinkSelection(link)}
                     />
                     <span className="text-[14px] w-[250px] truncate">
+                      {link}
+                    </span>
+                    <span className="absolute top-0 left-0 transform -translate-y-full bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                       {link}
                     </span>
                     <div

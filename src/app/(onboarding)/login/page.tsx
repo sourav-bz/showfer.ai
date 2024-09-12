@@ -20,6 +20,7 @@ export default function Signup() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      console.log("Session:", session);
       if (session) {
         setIsSuccess(true);
         setTimeout(() => {
