@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { comma } from "postcss/lib/list";
@@ -22,7 +22,23 @@ export default function BotTraining() {
   const [selectedLinks, setSelectedLinks] = useState<Set<string>>(new Set()); // New state for selected links
   const [selectAll, setSelectAll] = useState(false);
 
+  const [trainingStatus, setTrainingStatus] = useState<string>("untrained");
+
   const supabase = createClientComponentClient();
+  const changes = supabase
+    .channel("schema-db-changes")
+    .on(
+      "postgres_changes",
+      {
+        schema: "public", // Subscribes to the "public" schema in Postgres
+        event: "*", // Listen to all changes
+      },
+      (payload) => {
+        console.log("payload", payload);
+        setTrainingStatus(payload.new.overall_status);
+      }
+    )
+    .subscribe();
 
   // Add this function to get the user session
   const getUserSession = async () => {
@@ -37,27 +53,30 @@ export default function BotTraining() {
       return;
     }
 
-    const fileName = getFileName(link);
-
     // Get the user
     const user = await getUserSession();
-    console.log("User:", user);
 
     if (!user) {
       console.error("User not authenticated");
-      // Handle unauthenticated user (e.g., redirect to login)
-      router.push("/login"); // Adjust the path as needed
+      router.push("/login");
       return;
     }
 
     // Check if links exist in Supabase storage
+    const fileName = getFileName(link);
+
+    const { data: files, error: listError } = await supabase.storage
+      .from("showfer")
+      .list();
+
+    console.log("files", files);
+
     const { data, error } = await supabase.storage
       .from("showfer")
       .download(fileName);
 
     if (data) {
       console.log("file exists", data);
-      // If file exists, read its content
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;
@@ -67,144 +86,102 @@ export default function BotTraining() {
       reader.readAsText(data);
     } else {
       console.log("file does not exist");
-      // If file doesn't exist, fetch links from ScrapingBee
-      const response = await axios.get("https://app.scrapingbee.com/api/v1/", {
-        params: {
-          api_key:
-            "67UFI64EESFW50EFRX6ZP9ROHUW1FC4U685A3PBDR6QQZZA9PR45KJVWHMTM0D87O6733AYT0CAYDW2N",
-          url: link,
-          extract_rules: '{"all_links":{"selector":"a@href","type":"list"}}',
-        },
-      });
+      try {
+        const session = await supabase.auth.getSession();
+        const response = await axios.post(
+          "http://127.0.0.1:3033/get-all-links",
+          { url: link },
+          {
+            headers: {
+              Authorization: `Bearer ${session.data.session?.access_token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const uniqueLinks = Array.from(new Set(response.data.links));
+        setLinks(uniqueLinks);
 
-      const uniqueLinks = Array.from(new Set(response.data.all_links));
-      setLinks(uniqueLinks);
-
-      // Create and store the Markdown file
-      const content = uniqueLinks.join("\n");
-      const { error: uploadError } = await supabase.storage
-        .from("showfer")
-        .upload(fileName, content, {
-          contentType: "text/markdown",
-          upsert: true, // Add this line to allow overwriting existing files
-        });
-      if (uploadError) {
-        console.error("Error storing links:", uploadError);
+        const content = uniqueLinks.join("\n");
+        const { error: uploadError } = await supabase.storage
+          .from("showfer")
+          .upload(fileName, content, {
+            contentType: "text/markdown",
+            upsert: true,
+          });
+        if (uploadError) {
+          console.error("Error storing links:", uploadError);
+        }
+      } catch (error) {
+        console.error("Error fetching links:", error);
       }
     }
   };
 
   const handleStartTraining = async () => {
     console.log("Starting training");
-
     const user = await getUserSession();
+
     if (!user) {
       console.error("User not authenticated");
       router.push("/login");
       return;
     }
 
-    const baseUrl = new URL(link).origin;
-    const domainFolder = baseUrl
-      .replace(/^https?:\/\//, "")
-      .replace(/\./g, "-");
-
-    console.log("domainFolder", domainFolder);
-    console.log("selectedLinks", selectedLinks);
-
-    // Convert Set to Array and process each link
-    const selectedLinksArray = Array.from(selectedLinks);
-    for (let i = 0; i < selectedLinksArray.length; i++) {
-      const selectedLink = selectedLinksArray[i];
-      console.log(
-        `Processing link ${i + 1}/${selectedLinksArray.length}: ${selectedLink}`
+    try {
+      // First, check if an assistant already exists for the user
+      const checkResponse = await axios.get(
+        `/api/assistant-settings?userId=${user.id}`
       );
 
-      const fullUrl = selectedLink.startsWith("/")
-        ? `${baseUrl}${selectedLink}`
-        : selectedLink;
-      const fileName = `${fullUrl.split("/").pop() || "index"}.md`;
+      const assistantSettings = {
+        name: "Mlada Bot",
+        website_url: link,
+        overall_status: "untrained",
+        openai_assistant_id: null,
+      };
 
-      console.log("fullUrl", fullUrl);
-      console.log("fileName", fileName);
+      let response;
+      if (checkResponse.data.assistant) {
+        // Assistant exists, update it
+        response = await axios.put(`/api/assistant-settings`, {
+          ...assistantSettings,
+          id: checkResponse.data.assistant.id,
+        });
+      } else {
+        // Assistant doesn't exist, create a new one
+        response = await axios.post(
+          "/api/assistant-settings",
+          assistantSettings
+        );
+      }
 
-      try {
-        // Scrape content and images
-        const response = await axios.get(
-          "https://app.scrapingbee.com/api/v1/",
+      if (response.status === 200) {
+        console.log("Assistant settings saved successfully:", response.data);
+        // You can update your UI or state here based on the response
+        // setBotTrained(true);
+        const session = await supabase.auth.getSession();
+        const createAssistantResponse = await axios.post(
+          "http://127.0.0.1:3033/create-assistant",
           {
-            params: {
-              api_key:
-                "67UFI64EESFW50EFRX6ZP9ROHUW1FC4U685A3PBDR6QQZZA9PR45KJVWHMTM0D87O6733AYT0CAYDW2N",
-              url: fullUrl,
-              extract_rules:
-                '{"content":"body","images":{"selector":"img","type":"list","output":"@src"}}',
+            ...assistantSettings,
+            id: response.data.data[0].id,
+            list_of_links: Array.from(selectedLinks),
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${session.data.session?.access_token}`,
+              "Content-Type": "application/json",
             },
           }
         );
 
-        let content = response.data.content;
-        const images = response.data.images;
-
-        console.log("image and content scrapped");
-
-        // Perform OCR on images
-        let imageTexts = [];
-        try {
-          const worker = await createWorker("eng");
-          imageTexts = await Promise.all(
-            images.map(async (img) => {
-              try {
-                const {
-                  data: { text },
-                } = await worker.recognize(img);
-                return text;
-              } catch (ocrError) {
-                console.error(`OCR failed for image: ${img}`, ocrError);
-                return "OCR failed for this image";
-              }
-            })
-          );
-          await worker.terminate();
-          console.log("OCR done on images");
-        } catch (workerError) {
-          console.error("Error creating or using OCR worker:", workerError);
-          console.log("Skipping OCR due to error");
-        }
-
-        // Format content
-        content = content.replace(/\s+/g, " ").trim();
-
-        // Create markdown content
-        let markdownContent = `# ${fullUrl}\n\n## Content\n\n${content}\n\n## Images\n\n`;
-        images.forEach((img, index) => {
-          markdownContent += `![Image ${index + 1}](${img})\n\n${
-            imageTexts[index]
-          }\n\n`;
-        });
-
-        console.log("markdown content created");
-
-        // Store file in Supabase
-        const { error: uploadError } = await supabase.storage
-          .from("showfer")
-          .upload(`${domainFolder}/${fileName}`, markdownContent, {
-            contentType: "text/markdown",
-            upsert: true,
-          });
-
-        if (uploadError) {
-          console.error(`Error storing file for ${fullUrl}:`, uploadError);
-        } else {
-          console.log(`Successfully stored file for ${fullUrl}`);
-        }
-      } catch (error) {
-        console.error(`Error processing ${fullUrl}:`, error);
+        console.log("createAssistantResponse", createAssistantResponse);
+      } else {
+        console.error("Error saving assistant settings:", response.data.error);
       }
+    } catch (error) {
+      console.error("Error in API call:", error);
     }
-
-    // TODO: Create OpenAI assistant with the content and images
-    // TODO: Store the assistant ID and document reference in Supabase
   };
 
   const toggleLinkSelection = (link: string) => {
@@ -282,7 +259,7 @@ export default function BotTraining() {
                   <button
                     className="bg-[#6D67E4] text-white px-4 py-2 rounded-[10px] w-[135px] h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleFetchLinks}
-                    disabled={!link || links.length > 0}
+                    // disabled={!link || links.length > 0}
                   >
                     Fetch Links
                   </button>
@@ -382,7 +359,28 @@ export default function BotTraining() {
       </main>
 
       <footer className="p-6 flex justify-end mt-auto">
-        {
+        {trainingStatus === "trained" ? (
+          <button
+            className={`bg-[#6D67E4] text-white px-6 py-2 rounded-[10px] flex items-center ${
+              links.length > 0 ? "" : "invisible"
+            }`}
+            onClick={() => router.push("/onboarding/playground")}
+          >
+            Next
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="25"
+              height="24"
+              viewBox="0 0 25 24"
+              fill="none"
+            >
+              <path
+                d="M10.5198 5.32L13.7298 8.53L15.6998 10.49C16.5298 11.32 16.5298 12.67 15.6998 13.5L10.5198 18.68C9.83977 19.36 8.67977 18.87 8.67977 17.92V12.31V6.08C8.67977 5.12 9.83977 4.64 10.5198 5.32Z"
+                fill="white"
+              />
+            </svg>
+          </button>
+        ) : (
           <button
             className={`bg-[#6D67E4] text-white px-6 py-2 rounded-[10px] flex items-center ${
               links.length > 0 ? "" : "invisible"
@@ -403,7 +401,7 @@ export default function BotTraining() {
               />
             </svg>
           </button>
-        }
+        )}
       </footer>
     </div>
   );

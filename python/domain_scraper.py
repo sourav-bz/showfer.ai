@@ -15,6 +15,9 @@ from io import BytesIO
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import datetime
+from openai import OpenAI
+import tempfile
+import shutil
 
 def setup_driver():
     chrome_options = Options()
@@ -110,57 +113,102 @@ def scrape_page(url):
     finally:
         driver.quit()
 
-def save_scraped_content(domain, url, content):
+def save_scraped_content(domain, url, content, local_dir):
     # Replace periods with hyphens in the domain name
     formatted_domain = domain.replace('.', '-')
     
-    # Create the file path for Supabase storage
+    # Create the file path for local storage and Supabase storage
     filename = urlparse(url).path.strip('/').replace('/', '_') or 'index'
     timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     filename = f"{filename}-{timestamp}.md"
-    file_path = f"{formatted_domain}/{filename}"
+    local_file_path = os.path.join(local_dir, filename)
+    supabase_file_path = f"{formatted_domain}/{filename}"
+    
+    # Save the content locally
+    with open(local_file_path, 'w', encoding='utf-8') as f:
+        f.write(content)
     
     # Save the content to Supabase
     try:
-        supabase.storage.from_("showfer").upload(file_path, content.encode('utf-8'))
-        print(f"Successfully saved {file_path} to Supabase")
+        with open(local_file_path, 'rb') as f:
+            supabase.storage.from_("showfer").upload(supabase_file_path, f)
+        print(f"Successfully saved {supabase_file_path} to Supabase")
     except Exception as e:
-        print(f"Error saving {file_path} to Supabase: {str(e)}")
+        print(f"Error saving {supabase_file_path} to Supabase: {str(e)}")
 
-def get_links_from_supabase(domain_name):
-    load_dotenv()
-    url = os.getenv("SUPABASE_URL")
-    key = os.getenv("SUPABASE_API_KEY")
+# def get_links_from_supabase(domain_name):
+#     load_dotenv()
+#     url = os.getenv("SUPABASE_URL")
+#     key = os.getenv("SUPABASE_API_KEY")
     
-    if not url or not key:
-        raise ValueError("SUPABASE_URL or SUPABASE_API_KEY not found in .env file")
+#     if not url or not key:
+#         raise ValueError("SUPABASE_URL or SUPABASE_API_KEY not found in .env file")
 
-    supabase: Client = create_client(url, key)
+#     supabase: Client = create_client(url, key)
 
-    # Replace periods with hyphens in the domain name
-    formatted_domain_name = domain_name.replace('.', '-')
-    file_name = f"{formatted_domain_name}-links.md"
-    bucket_name = "showfer"
-    folder_name = "links"
-    file_path = f"{folder_name}/{file_name}"
+#     # Replace periods with hyphens in the domain name
+#     formatted_domain_name = domain_name.replace('.', '-')
+#     file_name = f"{formatted_domain_name}-links.md"
+#     bucket_name = "showfer"
+#     folder_name = "links"
+#     file_path = f"{folder_name}/{file_name}"
 
-    try:
-        # Check if the file exists
-        file_info = supabase.storage.from_(bucket_name).list(folder_name)
-        if not any(item['name'] == file_name for item in file_info):
-            print(f"File '{file_name}' not found in '{bucket_name}/{folder_name}'")
-            return []
+#     try:
+#         # Check if the file exists
+#         file_info = supabase.storage.from_(bucket_name).list(folder_name)
+#         if not any(item['name'] == file_name for item in file_info):
+#             print(f"File '{file_name}' not found in '{bucket_name}/{folder_name}'")
+#             return []
 
-        response = supabase.storage.from_(bucket_name).download(file_path)
-        links = response.decode('utf-8').split('\n')
-        return [link.strip() for link in links if link.strip()]
-    except Exception as e:
-        print(f"Error fetching links file from Supabase: {str(e)}")
-        print(f"Attempted to fetch file: {file_path}")
-        print(f"Bucket: {bucket_name}")
-        return []
+#         response = supabase.storage.from_(bucket_name).download(file_path)
+#         links = response.decode('utf-8').split('\n')
+#         return [link.strip() for link in links if link.strip()]
+#     except Exception as e:
+#         print(f"Error fetching links file from Supabase: {str(e)}")
+#         print(f"Attempted to fetch file: {file_path}")
+#         print(f"Bucket: {bucket_name}")
+#         return []
+    
+def create_openai_assistant(name, domain_name, local_dir):
+    print(f"Creating OpenAI assistant for {domain_name}")
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    
+    # Create the assistant first
+    assistant = client.beta.assistants.create(
+        name=f"{name} Assistant",
+        instructions=f"You are an assistant for {domain_name}. Use your knowledge base to answer questions about the website and its content.",
+        model="gpt-3.5-turbo",
+        tools=[{"type": "file_search"}]
+    )
+    
+    # Create a vector store for the domain
+    vector_store = client.beta.vector_stores.create(name=f"{domain_name} Knowledge Base")
+    
+    # Get all files from the local directory
+    file_list = os.listdir(local_dir)
+    
+    # Upload files to OpenAI and add them to the vector store
+    file_streams = [open(os.path.join(local_dir, file_name), "rb") for file_name in file_list]
+    file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+        vector_store_id=vector_store.id,
+        files=file_streams
+    )
+    
+    print(f"File batch status: {file_batch.status}")
+    print(f"File counts: {file_batch.file_counts}")
+    
+    # Update the assistant with the vector store
+    assistant = client.beta.assistants.update(
+        assistant_id=assistant.id,
+        tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
+    )
+    
+    return assistant.id
 
-def main():
+def scrape_domain(name, website_url, links_to_scrape):
+    domain = website_url
+    print(f"Scraping domain {website_url}")
+
     load_dotenv()
     url = os.getenv("SUPABASE_URL")
     key = os.getenv("SUPABASE_API_KEY")
@@ -170,26 +218,9 @@ def main():
 
     global supabase
     supabase = create_client(url, key)
-
-    domain = "https://mlada.in"
-    domain_name = urlparse(domain).netloc
-
-    # Fetch links from Supabase
-    links = get_links_from_supabase(domain_name)
-
-    if not links:
-        print("No links found in the file. Exiting.")
-        return
-
-    print(f"Found {len(links)} links from Supabase")
-    
-    num_links = 10
-    
-    # Scrape all links if num_links is 0, otherwise limit to num_links
-    links_to_scrape = links if num_links == 0 else links[:num_links]
     
     # Delete the existing folder before starting scraping
-    formatted_domain = urlparse(domain).netloc.replace('.', '-')
+    formatted_domain = urlparse(website_url).netloc.replace('.', '-')
     try:
         folder_contents = supabase.storage.from_("showfer").list(formatted_domain)
         for item in folder_contents:
@@ -199,18 +230,25 @@ def main():
         if "The resource was not found" not in str(e):
             print(f"Error deleting folder {formatted_domain}: {str(e)}")
     
-    print(f"Scraping {len(links_to_scrape)} pages...")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
-        future_to_url = {executor.submit(scrape_page, url): url for url in links_to_scrape}
-        for future in tqdm(concurrent.futures.as_completed(future_to_url), total=len(links_to_scrape), desc="Scraping Progress"):
-            url = future_to_url[future]
-            try:
-                content = future.result()
-                save_scraped_content(urlparse(domain).netloc, url, content)
-            except Exception as e:
-                print(f"Error processing {url}: {str(e)}")
+    # Create a temporary directory to store scraped content
+    with tempfile.TemporaryDirectory() as temp_dir:
+        print(f"Scraping {len(links_to_scrape)} pages...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
+            future_to_url = {executor.submit(scrape_page, url): url for url in links_to_scrape}
+            for future in tqdm(concurrent.futures.as_completed(future_to_url), total=len(links_to_scrape), desc="Scraping Progress"):
+                url = future_to_url[future]
+                try:
+                    content = future.result()
+                    save_scraped_content(urlparse(domain).netloc, url, content, temp_dir)
+                except Exception as e:
+                    print(f"Error processing {url}: {str(e)}")
 
-    print("Scraping completed.")
+        print("Scraping completed.")
+        
+        # Create OpenAI assistant and get assistant_id
+        domain_name = urlparse(domain).netloc
+        assistant_id = create_openai_assistant(name, domain_name, temp_dir)
+        print(f"Created OpenAI assistant with ID: {assistant_id}")
+        return assistant_id
 
-if __name__ == "__main__":
-    main()
+    # The temporary directory and its contents will be automatically deleted when exiting the context manager

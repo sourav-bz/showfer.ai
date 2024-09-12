@@ -1,5 +1,4 @@
 import time
-from scraper import scrape_urls
 from supabase_operations import get_new_entries, store_scraped_data, update_status
 
 def process_entries(entries):
