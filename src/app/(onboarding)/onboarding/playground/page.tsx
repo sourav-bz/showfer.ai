@@ -1,35 +1,64 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { WifiIcon } from "@heroicons/react/16/solid"; // Make sure to install @heroicons/react
+import Bot from "@/app/(dashboard)/playground/_ui/Bot";
 
 export default function Playground() {
-  const [content, setContent] = useState("");
+  const [url, setUrl] = useState<string>("https://mlada.in");
+  const [htmlContent, setHtmlContent] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [view, setView] = useState("Desktop");
-
+  const iframeRef = useRef(null);
   const router = useRouter();
 
   useEffect(() => {
-    fetchContent("https://mlada.in");
+    fetchContent(url);
   }, []);
 
   const fetchContent = async (url: string) => {
+    if (!url) return;
+    setError(null);
+    setHtmlContent("");
+    setLoading(true);
     try {
-      const response = await axios.get(
-        `/api/proxy?url=${encodeURIComponent(url)}`
-      );
-      setContent(response.data.content);
+      const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Proxy error:", data);
+        setError(data.error || "An error occurred");
+      } else {
+        const modifiedHtmlContent = data.content.replace(
+          "</head>",
+          `<style>
+            html, body {
+              overflow: auto;
+              scrollbar-width: none;
+              -ms-overflow-style: none;
+            }
+            html::-webkit-scrollbar, body::-webkit-scrollbar {
+              display: none;
+            }
+          </style>
+          </head>`
+        );
+        setHtmlContent(modifiedHtmlContent);
+      }
     } catch (error) {
       console.error("Error fetching content:", error);
+      setError("Failed to fetch content");
     }
+    setLoading(false);
   };
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg">
       <div className="p-[40px] flex flex-col w-full h-full">
+        {/* Header section */}
         <div className="flex items-center mb-[40px] relative">
           <h1 className="text-[24px] font-medium mb-4 text-left flex items-center">
             <Image
@@ -62,16 +91,52 @@ export default function Playground() {
             </div>
           </div>
         </div>
-        <div className="flex justify-center items-center">
-          <div
-            className={`border-[10px] border-[#E3E4EC] rounded-[10px] p-4 ${
-              view === "Mobile" ? "w-[305px]" : "w-[1248px]"
-            } h-[calc(100vh-375px)] overflow-y-auto`}
-          >
-            <div dangerouslySetInnerHTML={{ __html: content }} />
-          </div>
+
+        {/* Content display */}
+        <div className="flex justify-center items-center flex-grow">
+          {!htmlContent && !error && !loading ? (
+            <div className="flex flex-col items-center justify-center">
+              <Image
+                src={"/playground/playground_zero_state.svg"}
+                alt="no_content"
+                height={304}
+                width={304}
+              />
+              <p className="text-center text-lg text-[#8F93A5]">
+                Error fetching content
+              </p>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 p-4 text-center">{error}</div>
+          ) : (
+            <div
+              className={`border-[10px] border-[#E3E4EC] rounded-[10px] p-4 ${
+                view === "Mobile" ? "w-[305px]" : "w-[1248px]"
+              } h-[calc(100vh-375px)] overflow-hidden relative`}
+            >
+              {view === "Desktop" ? (
+                <iframe
+                  ref={iframeRef}
+                  srcDoc={htmlContent}
+                  className="w-full h-full"
+                  sandbox="allow-same-origin"
+                />
+              ) : (
+                <iframe
+                  ref={iframeRef}
+                  srcDoc={htmlContent}
+                  className="w-full h-[calc(100%-44px)]"
+                  sandbox="allow-same-origin"
+                />
+              )}
+              <div className="absolute bottom-0 w-full z-10">
+                <Bot mobile={view === "Mobile"} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
+      {/* Footer */}
       <footer className="p-6 flex justify-end mt-auto">
         <Link
           href="/onboarding/billing"
