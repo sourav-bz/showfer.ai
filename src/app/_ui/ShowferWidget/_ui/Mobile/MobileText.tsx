@@ -1,8 +1,8 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import OpenAI from "openai";
-import { usePlaygroundStore } from "../../../dashboard/_store/PlaygroundStore";
-import { PersonalitySettings } from "../types/Widget";
+import { usePlaygroundStore } from "../../../../dashboard/_store/PlaygroundStore";
+import { PersonalitySettings } from "../../_types/Widget";
 
 const configuration = {
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,

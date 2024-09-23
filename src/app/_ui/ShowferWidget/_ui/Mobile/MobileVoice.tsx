@@ -2,8 +2,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { useSwipeable } from "react-swipeable";
 import { characters } from "@/app/(onboarding)/onboarding/personality/store";
-import IconSVG from "../../IconSvg";
-import { PersonalitySettings } from "../types/Widget";
+import { PersonalitySettings } from "../../_types/Widget";
+import IconSVG from "@/app/_ui/IconSvg";
 
 export default function MobileVoice({
   personalitySettings,
@@ -32,7 +32,7 @@ export default function MobileVoice({
 
   return (
     <div
-      className="w-[258px] h-full bg-white rounded-xl border border-gray-200 overflow-hidden mb-4 flex flex-col items-center justify-center relative p-2 -mr-0.5 touch-none"
+      className="w-full h-full bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col items-center justify-center relative p-2 -mr-0.5 touch-none"
       {...handlers}
     >
       <div className="flex flex-row items-center w-full">

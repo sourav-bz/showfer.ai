@@ -6,7 +6,7 @@ interface AnimatedOrbProps {
   primaryColor?: string;
 }
 
-const AnimatedOrb: React.FC<AnimatedOrbProps> = ({
+const OrbIcon: React.FC<AnimatedOrbProps> = ({
   width = 500,
   height = 500,
   primaryColor = "#FFD700", // Default to yellow if no color is provided
@@ -255,4 +255,4 @@ const AnimatedOrb: React.FC<AnimatedOrbProps> = ({
   );
 };
 
-export default AnimatedOrb;
+export default OrbIcon;

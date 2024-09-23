@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
-import IconSVG from "../../IconSvg";
-import { PersonalitySettings } from "../types/Widget";
+import IconSVG from "@/app/_ui/IconSvg";
+import { PersonalitySettings } from "../../_types/Widget";
 
 interface DesktopHeaderProps {
   personalitySettings: PersonalitySettings;

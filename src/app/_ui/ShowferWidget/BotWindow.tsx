@@ -1,11 +1,7 @@
 import React, { useState } from "react";
-import { PersonalitySettings } from "./types/Widget";
-import MobileText from "./_ui/MobileText";
-import DesktopText from "./_ui/DesktopText";
-import DesktopVoice from "./_ui/DesktopVoice";
-import MobileVoice from "./_ui/MobileVoice";
-import MobileHeader from "./_ui/MobileHeader";
-import DesktopHeader from "./_ui/DesktopHeader";
+import { PersonalitySettings } from "./_types/Widget";
+import Mobile from "./_ui/Mobile/Mobile";
+import Desktop from "./_ui/Desktop/Desktop";
 
 const BotWindow = ({
   mobile,
@@ -29,63 +25,21 @@ const BotWindow = ({
   };
 
   const renderInterface = () => {
+    const props = {
+      personalitySettings,
+      handleSendMessage,
+      toggleChat,
+      isChatMode,
+      toggleMode,
+    };
     if (mobile) {
-      return isChatMode ? (
-        <MobileText
-          personalitySettings={personalitySettings}
-          handleSendMessage={handleSendMessage}
-        />
-      ) : (
-        <MobileVoice
-          personalitySettings={personalitySettings}
-          toggleChat={toggleChat}
-          toggleMode={toggleMode}
-        />
-      );
+      return <Mobile {...props} />;
     } else {
-      return isChatMode ? (
-        <DesktopText
-          personalitySettings={personalitySettings}
-          handleSendMessage={handleSendMessage}
-        />
-      ) : (
-        <DesktopVoice personalitySettings={personalitySettings} />
-      );
+      return <Desktop {...props} />;
     }
   };
 
-  const renderHeader = () => {
-    if (mobile) {
-      return (
-        <MobileHeader
-          personalitySettings={personalitySettings}
-          isChatMode={isChatMode}
-          toggleMode={toggleMode}
-        />
-      );
-    } else {
-      return (
-        <DesktopHeader
-          personalitySettings={personalitySettings}
-          isChatMode={isChatMode}
-          toggleMode={toggleMode}
-        />
-      );
-    }
-  };
-
-  return (
-    <div
-      className={`${
-        mobile
-          ? "w-[276px] h-[560px] -mb-7 -mr-3 rounded-[20px]"
-          : "w-[280px] h-full rounded-lg "
-      } bg-white shadow-md overflow-hidden flex flex-col`}
-    >
-      {renderHeader()}
-      {renderInterface()}
-    </div>
-  );
+  return <>{renderInterface()}</>;
 };
 
 export default BotWindow;

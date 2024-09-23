@@ -156,7 +156,7 @@ export default function Playground() {
             <div className="text-red-500 p-4 text-center">{error}</div>
           ) : (
             <div
-              className={`border-[10px] border-[#E3E4EC] rounded-[10px] p-4 ${
+              className={`border-[10px] border-[#E3E4EC] rounded-[10px] ${
                 view === "Mobile" ? "w-[305px]" : "w-[1248px]"
               } h-[calc(100vh-350px)] overflow-hidden relative`}
             >
@@ -175,7 +175,7 @@ export default function Playground() {
                   sandbox="allow-same-origin"
                 />
               )}
-              <div className="absolute bottom-5 right-5 h-full">
+              <div className="absolute bottom-0 right-0 h-full w-full">
                 <Bot mobile={view === "Mobile"} parentHeight="100%" />
               </div>
             </div>

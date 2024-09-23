@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import BotWindow from "./BotWindow";
-import AnimatedOrb from "./_ui/AnimatedOrb";
+import OrbIcon from "./_ui/Orb/OrbIcon";
 
-const Bot = ({
-  mobile,
-  parentHeight,
-}: {
-  mobile?: boolean;
-  parentHeight: string;
-}) => {
+const Bot = ({ mobile }: { mobile?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [personalitySettings, setPersonalitySettings] = useState<any>(null);
@@ -19,7 +13,6 @@ const Bot = ({
 
   useEffect(() => {
     const fetchUserData = async () => {
-      // Get the authenticated user
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -63,25 +56,19 @@ const Bot = ({
 
   const toggleChat = () => setIsOpen(!isOpen);
 
-  const botWindowHeight = mobile
-    ? "calc(20%)" // Adjusted for 70% height
-    : "calc(80%)"; // Adjusted for 70% height
-
   return (
     <div className="flex flex-col mt-auto items-end justify-end h-full">
       {isOpen && (
-        <div style={{ height: botWindowHeight, marginBottom: "10px" }}>
-          <BotWindow
-            mobile={mobile}
-            toggleChat={toggleChat}
-            assistantId={assistantId!}
-            personalitySettings={personalitySettings}
-          />
-        </div>
+        <BotWindow
+          mobile={mobile}
+          toggleChat={toggleChat}
+          assistantId={assistantId!}
+          personalitySettings={personalitySettings}
+        />
       )}
       {(!mobile || !isOpen) && (
         <button onClick={toggleChat}>
-          <AnimatedOrb
+          <OrbIcon
             width={mobile ? 40 : 50}
             height={mobile ? 40 : 50}
             primaryColor={personalitySettings?.primaryColor}

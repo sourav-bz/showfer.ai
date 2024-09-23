@@ -11,10 +11,10 @@ import {
   characters,
   usePersonalityStore,
 } from "@/app/(onboarding)/onboarding/personality/store";
-import { PersonalitySettings } from "../types/Widget";
-import { getComponentForCharacter } from "../_utils/getComponentForCharacter";
-import IconSVG from "../../IconSvg";
-import VoiceOrb from "./VoiceOrb";
+import { PersonalitySettings } from "../../_types/Widget";
+import { getComponentForCharacter } from "../../_utils/getComponentForCharacter";
+import IconSVG from "@/app/_ui/IconSvg";
+import VoiceOrb from "../Orb/VoiceOrb";
 
 const NodCamera = ({ storyState }: { storyState: "user" | "assistant" }) => {
   const isVertical = useRef(Math.random() < 0.5);
