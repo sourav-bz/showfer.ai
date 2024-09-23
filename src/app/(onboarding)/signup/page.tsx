@@ -5,18 +5,19 @@ import Link from "next/link";
 import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { checkUserStatus } from "../signup/_utils/checkUserStatus";
 import toast, { Toaster } from "react-hot-toast";
+import { checkUserStatus } from "./_utils/checkUserStatus";
 
-export default function Signin() {
+export default function Signup() {
   const router = useRouter();
   const [isVerifying, setIsVerifying] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [earlyAccessApproved, setEarlyAccessApproved] = useState(false);
   const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
   const supabase = createClientComponentClient();
   const [isLoading, setIsLoading] = useState(false);
-
-  const [earlyAccessApproved, setEarlyAccessApproved] = useState(false);
 
   const changes = supabase
     .channel("schema-db-changes")
@@ -42,6 +43,10 @@ export default function Signin() {
       console.log("Session:", session);
       if (session) {
         setIsAuthenticated(true);
+        const userStatus = await checkUserStatus(email);
+        if (userStatus.exists) {
+          setEarlyAccessApproved(userStatus.early_access_approved);
+        }
       }
     };
 
@@ -52,6 +57,7 @@ export default function Signin() {
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
         setIsAuthenticated(true);
+        createNewUser();
       }
     });
 
@@ -64,26 +70,55 @@ export default function Signin() {
     }
   }, [isAuthenticated, earlyAccessApproved, router]);
 
-  useEffect(() => {
-    const checkEarlyAccess = async () => {
-      const user = await supabase.auth.getUser();
-      const userStatus = await checkUserStatus(user.data.user?.email!);
-      if (userStatus?.exists) {
-        setEarlyAccessApproved(userStatus.early_access_approved);
-      }
-    };
+  const createNewUser = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const { full_name, website_url } = user?.user_metadata || {};
 
-    if (isAuthenticated) {
-      checkEarlyAccess();
+      const response = await fetch("/api/users/create-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: full_name, websiteUrl: website_url }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.user) {
+        // User created successfully, show appropriate UI
+        setEarlyAccessApproved(data.user.early_access_approved);
+      } else {
+        // Handle error
+        console.error("Error creating user:", data.error);
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
     }
-  }, [isAuthenticated]);
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     const userStatus = await checkUserStatus(email);
-
     if (userStatus.exists) {
+      toast("User already exists, please sign in", {
+        icon: "👋",
+        style: {
+          borderRadius: "10px",
+          background: "#6D67E4",
+          color: "#fff",
+        },
+      });
+      setIsLoading(false);
+      setTimeout(() => {
+        router.push("/signin");
+      }, 2000);
+    } else {
       setIsVerifying(true);
       try {
         const { error } = await supabase.auth.signInWithOtp({
@@ -94,6 +129,7 @@ export default function Signin() {
             }/api/callback?redirectTo=${encodeURIComponent(
               window.location.pathname
             )}`,
+            data: { full_name: fullName, website_url: websiteUrl },
           },
         });
 
@@ -103,12 +139,6 @@ export default function Signin() {
         console.error("Error sending magic link:", error);
         setIsVerifying(false);
       }
-    } else {
-      setIsLoading(false);
-      toast.error("User does not exist, please sign up");
-      setTimeout(() => {
-        router.push("/signup");
-      }, 2000);
     }
   };
 
@@ -124,7 +154,7 @@ export default function Signin() {
             </h2>
             <ul className="space-y-[32px]">
               <ListItem
-                text="Manage all support channels from one screen"
+                text="Give voice to your brand and website"
                 description="Showfer.ai integrates with WhatsApp, IG DMs, Facebook Messenger, IG & FB post comments, Email & Live Chat."
               />
               <ListItem
@@ -159,6 +189,24 @@ export default function Signin() {
             >
               <div>
                 <label
+                  htmlFor="fullName"
+                  className="block text-sm font-normal text-gray-700"
+                >
+                  Full Name
+                </label>
+                <input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  required
+                  className="mt-1 block w-full px-[15px] py-[10px] rounded-md focus:outline-none focus:ring-0 bg-[#F0F2F7] placeholder-gray-400 placeholder-opacity-100 font-light"
+                  placeholder="Full legal name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label
                   htmlFor="email"
                   className="block text-sm font-normal text-gray-700"
                 >
@@ -176,11 +224,29 @@ export default function Signin() {
                 />
               </div>
               <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-normal text-gray-700"
+                >
+                  Website URL
+                </label>
+                <input
+                  id="websiteUrl"
+                  name="websiteUrl"
+                  type="text"
+                  required
+                  className="mt-1 block w-full px-[15px] py-[10px] rounded-md focus:outline-none focus:ring-0 bg-[#F0F2F7] placeholder-gray-400 placeholder-opacity-100 font-light"
+                  placeholder="https://www.yourwebsite.com"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                />
+              </div>
+              <div>
                 <button
                   type="submit"
                   className="w-full flex justify-center p-[10px] border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#6D67E4] hover:bg-[#5652b5] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6D67E4]"
                 >
-                  {isLoading ? "Loading..." : "Send me login link"}
+                  {isLoading ? "Loading..." : "Get early access"}
                 </button>
               </div>
             </form>
@@ -279,12 +345,12 @@ export default function Signin() {
           {!isVerifying && !isAuthenticated && (
             <>
               <p className="mt-4 text-center text-sm text-gray-600">
-                Don&apos;t have an account?{" "}
+                Already have an account?{" "}
                 <Link
-                  href="/signup"
+                  href="/signin"
                   className="font-normal text-[#6D67E4] hover:text-[#5652b5]"
                 >
-                  Sign up here
+                  Sign in here
                 </Link>
               </p>
               <p className="mt-4 text-center text-xs text-gray-500">

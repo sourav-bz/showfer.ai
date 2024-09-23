@@ -5,10 +5,9 @@ import Image from "next/image";
 import PersonalityName from "./PersonalityName";
 import { IoCheckbox } from "react-icons/io5";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { PopupButton } from "react-calendly";
 
 const Hero: React.FC = () => {
-  const router = useRouter();
   const [currentImage, setCurrentImage] = useState(0);
   const images = [
     "/hero/personality-1-friendly.svg",
@@ -88,16 +87,17 @@ const Hero: React.FC = () => {
             </div> */}
             <div className="mt-20 space-x-4 flex">
               <a
-                href="#schedule-demo"
+                href="/signup"
                 className="px-5 py-2.5 bg-[#6d67e4] rounded-md justify-center items-center gap-2.5 flex text-white"
               >
-                Schedule a demo
+                Early access
               </a>
-              <a
-                href="/login"
-                className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex text-[#6d67e4]"
-              >
-                Sign up for free
+              <a className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex text-[#6d67e4]">
+                <PopupButton
+                  url="https://calendly.com/showfer-support/demo"
+                  text="Schedule a demo"
+                  rootElement={document.body}
+                />
               </a>
             </div>
           </div>

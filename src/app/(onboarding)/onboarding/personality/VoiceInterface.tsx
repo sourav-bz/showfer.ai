@@ -16,7 +16,7 @@ import Buddy from "@/app/_ui/Characters/Buddy";
 import Griffin from "@/app/_ui/Characters/Griffin";
 import Grennie from "@/app/_ui/Characters/Grennie";
 import Sassy from "@/app/_ui/Characters/Sassy";
-import VoiceOrb from "@/app/(dashboard)/playground/_ui/VoiceOrb";
+import VoiceOrb from "@/app/_ui/ShowferWidget/_ui/VoiceOrb";
 import IconSVG from "@/app/_ui/IconSvg";
 import { useTTS } from "@cartesia/cartesia-js/react";
 import { EmotionControl } from "@cartesia/cartesia-js";

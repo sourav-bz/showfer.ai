@@ -1,13 +1,16 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import axios from "axios";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { comma } from "postcss/lib/list";
-import { parse } from "node-html-parser";
-import { createWorker } from "tesseract.js";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/react";
+import ClipLoader from "react-spinners/ClipLoader";
 
 const getFileName = (link: string): string => {
   const hostname = new URL(link).hostname;
@@ -17,25 +20,129 @@ const getFileName = (link: string): string => {
 export default function BotTraining() {
   const router = useRouter();
   const [link, setLink] = useState<string>("");
-  const [links, setLinks] = useState<unknown[]>([]);
+  const [links, setLinks] = useState<string[]>([]);
   const [botTrained, setBotTrained] = useState<boolean>(false);
   const [selectedLinks, setSelectedLinks] = useState<Set<string>>(new Set()); // New state for selected links
   const [selectAll, setSelectAll] = useState(false);
+  const [isFetchingLinks, setIsFetchingLinks] = useState(false);
 
   const [trainingStatus, setTrainingStatus] = useState<string>("untrained");
+  const [isTrainingDialogOpen, setIsTrainingDialogOpen] = useState(false);
+  const [trainingLevels, setTrainingLevels] = useState([
+    { name: "Fetching the information from the link", status: "not_started" },
+    {
+      name: "Structuring the information for AI to understand",
+      status: "not_started",
+    },
+    { name: "We are creating your assistant", status: "not_started" },
+    { name: "The assistant is ready", status: "not_started" },
+  ]);
+  const [progress, setProgress] = useState(0);
 
   const supabase = createClientComponentClient();
+
+  type PayloadType = {
+    new: {
+      overall_status: string;
+    };
+  };
+
   const changes = supabase
-    .channel("schema-db-changes")
+    .channel("table-db-changes")
     .on(
       "postgres_changes",
       {
-        schema: "public", // Subscribes to the "public" schema in Postgres
-        event: "*", // Listen to all changes
+        event: "*",
+        schema: "public",
       },
-      (payload) => {
+      (payload: any) => {
         console.log("payload", payload);
         setTrainingStatus(payload.new.overall_status);
+        if (payload.new.overall_status === "untrained") {
+          setTrainingLevels([
+            {
+              name: "Fetching the information from the link",
+              status: "in_progress",
+            },
+            {
+              name: "Structuring the information for AI to understand",
+              status: "not_started",
+            },
+            { name: "We are creating your assistant", status: "not_started" },
+            { name: "The assistant is ready", status: "not_started" },
+          ]);
+          setProgress(20);
+        } else if (payload.new.overall_status === "fetching_info") {
+          setTrainingLevels([
+            {
+              name: "Fetching the information from the link",
+              status: "completed",
+            },
+            {
+              name: "Structuring the information for AI to understand",
+              status: "in_progress",
+            },
+            { name: "We are creating your assistant", status: "not_started" },
+            { name: "The assistant is ready", status: "not_started" },
+          ]);
+          setProgress(40);
+        } else if (payload.new.overall_status === "structuring_info") {
+          setTrainingLevels([
+            {
+              name: "Fetching the information from the link",
+              status: "completed",
+            },
+            {
+              name: "Structuring the information for AI to understand",
+              status: "completed",
+            },
+            { name: "We are creating your assistant", status: "in_progress" },
+            { name: "The assistant is ready", status: "not_started" },
+          ]);
+          setProgress(60);
+        } else if (payload.new.overall_status === "creating_assistant") {
+          setTrainingLevels([
+            {
+              name: "Fetching the information from the link",
+              status: "completed",
+            },
+            {
+              name: "Structuring the information for AI to understand",
+              status: "completed",
+            },
+            { name: "We are creating your assistant", status: "completed" },
+            { name: "The assistant is ready", status: "in_progress" },
+          ]);
+          setProgress(80);
+        } else if (payload.new.overall_status === "trained") {
+          setTrainingLevels([
+            {
+              name: "Fetching the information from the link",
+              status: "completed",
+            },
+            {
+              name: "Structuring the information for AI to understand",
+              status: "completed",
+            },
+            { name: "We are creating your assistant", status: "completed" },
+            { name: "The assistant is ready", status: "completed" },
+          ]);
+          setProgress(100);
+          setTimeout(async () => {
+            setIsTrainingDialogOpen(false);
+            const updateUserOnboardingStatus = await fetch(
+              "/api/users/update-onboarding",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ onboardingStatus: "training_done" }),
+              }
+            );
+            router.push("/onboarding/playground");
+          }, 2000);
+        }
       }
     )
     .subscribe();
@@ -58,10 +165,11 @@ export default function BotTraining() {
 
     if (!user) {
       console.error("User not authenticated");
-      router.push("/login");
+      router.push("/signin");
       return;
     }
 
+    setIsFetchingLinks(true);
     // Check if links exist in Supabase storage
     const fileName = getFileName(link);
 
@@ -82,6 +190,7 @@ export default function BotTraining() {
         const content = e.target?.result as string;
         const storedLinks = content.split("\n").filter(Boolean);
         setLinks(storedLinks);
+        setIsFetchingLinks(false);
       };
       reader.readAsText(data);
     } else {
@@ -99,14 +208,17 @@ export default function BotTraining() {
           }
         );
         const uniqueLinks = Array.from(new Set(response.data.links));
-        setLinks(uniqueLinks);
-
+        setLinks(uniqueLinks as string[]);
+        setIsFetchingLinks(false);
         const content = uniqueLinks.join("\n");
         const { error: uploadError } = await supabase.storage
           .from("showfer")
           .upload(fileName, content, {
             contentType: "text/markdown",
             upsert: true,
+            metadata: {
+              owner: user.id, // Set the owner metadata
+            },
           });
         if (uploadError) {
           console.error("Error storing links:", uploadError);
@@ -119,6 +231,8 @@ export default function BotTraining() {
 
   const handleStartTraining = async () => {
     console.log("Starting training");
+
+    setIsTrainingDialogOpen(true);
     const user = await getUserSession();
 
     if (!user) {
@@ -198,13 +312,11 @@ export default function BotTraining() {
 
   const handleSelectAll = useCallback(() => {
     setSelectAll(!selectAll);
-    setSelectedLinks(new Set(selectAll ? [] : (links as string[])));
+    setSelectedLinks(new Set(selectAll ? [] : links));
   }, [selectAll, links]);
 
   const handleDeleteLink = useCallback((linkToDelete: string) => {
-    setLinks((prevLinks) =>
-      (prevLinks as string[]).filter((link) => link !== linkToDelete)
-    );
+    setLinks((prevLinks) => prevLinks.filter((link) => link !== linkToDelete));
     setSelectedLinks((prevSelected) => {
       const newSelected = new Set(prevSelected);
       newSelected.delete(linkToDelete);
@@ -259,9 +371,21 @@ export default function BotTraining() {
                   <button
                     className="bg-[#6D67E4] text-white px-4 py-2 rounded-[10px] w-[135px] h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleFetchLinks}
+                    disabled={isFetchingLinks}
                     // disabled={!link || links.length > 0}
                   >
-                    Fetch Links
+                    {isFetchingLinks ? (
+                      <div className="flex items-center">
+                        <ClipLoader
+                          color="#ffffff"
+                          size={16}
+                          className="mr-2"
+                        />
+                        <span>Fetching...</span>
+                      </div>
+                    ) : (
+                      "Fetch Links"
+                    )}
                   </button>
                 </div>
               </div>
@@ -287,18 +411,20 @@ export default function BotTraining() {
         {links.length > 0 && (
           <div className="w-1/3 p-8 flex items-center justify-center">
             <div className="w-[450px]">
-              <div className="text-center text-sm text-gray-500 flex items-center mb-[40px]">
-                <Image
-                  src="/icons/info-circle.svg"
-                  alt="Info"
-                  width={16}
-                  height={16}
-                  className="mr-2"
-                />
-                <div className="text-[16px] text-[#FF3B30]">
-                  You can train up to 10 links for free.
+              {selectedLinks.size > 10 && (
+                <div className="text-center text-sm text-gray-500 flex items-center mb-[40px]">
+                  <Image
+                    src="/icons/info-circle.svg"
+                    alt="Info"
+                    width={16}
+                    height={16}
+                    className="mr-2"
+                  />
+                  <div className="text-[16px] text-[#FF3B30]">
+                    You can train up to 10 links for free.
+                  </div>
                 </div>
-              </div>
+              )}
               <h2 className="text-[16px] font-medium mb-[15px] flex items-center">
                 <Image
                   src={
@@ -333,10 +459,10 @@ export default function BotTraining() {
                       onClick={() => toggleLinkSelection(link)}
                     />
                     <span className="text-[14px] w-[250px] truncate">
-                      {link}
+                      {link as string}
                     </span>
                     <span className="absolute top-0 left-0 transform -translate-y-full bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                      {link}
+                      {link as string}
                     </span>
                     <div
                       className="cursor-pointer bg-[#FF3B301A] rounded-[6px] w-[30px] h-[30px] flex items-center justify-center ml-auto"
@@ -367,42 +493,89 @@ export default function BotTraining() {
             onClick={() => router.push("/onboarding/playground")}
           >
             Next
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="25"
-              height="24"
-              viewBox="0 0 25 24"
-              fill="none"
-            >
-              <path
-                d="M10.5198 5.32L13.7298 8.53L15.6998 10.49C16.5298 11.32 16.5298 12.67 15.6998 13.5L10.5198 18.68C9.83977 19.36 8.67977 18.87 8.67977 17.92V12.31V6.08C8.67977 5.12 9.83977 4.64 10.5198 5.32Z"
-                fill="white"
-              />
-            </svg>
+            <Image
+              src="/icons/right-arrow.svg"
+              alt="Next"
+              width={25}
+              height={24}
+            />
           </button>
         ) : (
           <button
-            className={`bg-[#6D67E4] text-white px-6 py-2 rounded-[10px] flex items-center ${
+            className={`bg-[#6D67E4] text-white px-6 py-2 rounded-[10px] flex items-center disabled:opacity-50 disabled:cursor-not-allowed ${
               links.length > 0 ? "" : "invisible"
             }`}
             onClick={handleStartTraining}
+            disabled={
+              isTrainingDialogOpen ||
+              selectedLinks.size === 0 ||
+              selectedLinks.size > 10
+            }
           >
-            Start Training
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="25"
-              height="24"
-              viewBox="0 0 25 24"
-              fill="none"
-            >
-              <path
-                d="M10.5198 5.32L13.7298 8.53L15.6998 10.49C16.5298 11.32 16.5298 12.67 15.6998 13.5L10.5198 18.68C9.83977 19.36 8.67977 18.87 8.67977 17.92V12.31V6.08C8.67977 5.12 9.83977 4.64 10.5198 5.32Z"
-                fill="white"
-              />
-            </svg>
+            {isTrainingDialogOpen ? (
+              <div className="flex items-center">
+                <ClipLoader color="#ffffff" size={16} className="mr-2" />
+                Training...
+              </div>
+            ) : (
+              <div className="flex items-center">
+                Start Training
+                <Image
+                  src="/icons/right-arrow.svg"
+                  alt="Next"
+                  width={25}
+                  height={24}
+                />
+              </div>
+            )}
           </button>
         )}
       </footer>
+      <Dialog
+        open={isTrainingDialogOpen}
+        onClose={() => {}}
+        className="relative z-50"
+      >
+        <DialogBackdrop className="fixed inset-0 bg-black/40" />
+        <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+          <DialogPanel className="max-w space-y-4 border bg-white p-12 rounded-lg">
+            <DialogTitle className="text-[24px] font-medium mb-[24px]">
+              Getting ready
+            </DialogTitle>
+            <div className="flex flex-col h-[180px] w-[500px] overflow-y-auto">
+              {trainingLevels.map(
+                (level, index) =>
+                  level.status !== "not_started" && (
+                    <div key={index} className="flex items-center mb-4">
+                      {level.status === "in_progress" && (
+                        <div className="w-5 h-5 mr-3">
+                          <ClipLoader color="#6D67E4" size={20} />
+                        </div>
+                      )}
+                      {level.status === "completed" && (
+                        <div className="w-5 h-5 mr-3">
+                          <Image
+                            src="/icons/tick-circle.svg"
+                            alt="Completed"
+                            width={20}
+                            height={20}
+                          />
+                        </div>
+                      )}
+                      <div className="text-[16px]">{level.name}</div>
+                    </div>
+                  )
+              )}
+            </div>
+            <div className="w-full bg-[#E3E4EC] rounded-full h-[14px]">
+              <div
+                className="bg-[#6D67E4] h-[14px] rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
     </div>
   );
 }

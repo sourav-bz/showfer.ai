@@ -13,11 +13,8 @@ export async function PUT(request: Request) {
 async function handleRequest(request: Request) {
   try {
     const personalitySettings = await request.json();
-    console.log("Received personality settings:", personalitySettings);
-
     const supabase = createRouteHandlerClient({ cookies });
 
-    // Get the current user's session
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -28,9 +25,8 @@ async function handleRequest(request: Request) {
 
     const userId = session.user.id;
 
-    // Insert or update the personality settings in the database
     const { data, error } = await supabase
-      .from("personality-settings")
+      .from("personality_settings")
       .upsert({
         userId: userId,
         ...personalitySettings,
@@ -42,8 +38,6 @@ async function handleRequest(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-
-    console.log("Settings saved successfully:", data);
 
     return NextResponse.json(
       { message: "Settings saved successfully" },
@@ -71,7 +65,7 @@ export async function GET(request: Request) {
     }
 
     const { data, error } = await supabase
-      .from("personality-settings")
+      .from("personality_settings")
       .select("*")
       .eq("userId", session.user.id)
       .single();

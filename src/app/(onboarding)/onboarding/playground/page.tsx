@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { WifiIcon } from "@heroicons/react/16/solid"; // Make sure to install @heroicons/react
-import Bot from "@/app/(dashboard)/playground/_ui/Bot";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { usePlaygroundStore } from "@/app/dashboard/_store/PlaygroundStore";
+import Bot from "@/app/_ui/ShowferWidget/Bot";
 
 export default function Playground() {
   const [url, setUrl] = useState<string>("https://mlada.in");
@@ -15,10 +16,55 @@ export default function Playground() {
   const [view, setView] = useState("Desktop");
   const iframeRef = useRef(null);
   const router = useRouter();
+  const supabase = createClientComponentClient();
+  const { assistantId, setAssistantId } = usePlaygroundStore();
+
+  const getUserSession = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    return user;
+  };
 
   useEffect(() => {
-    fetchContent(url);
+    const fetchAssistantSettings = async () => {
+      try {
+        const user = await getUserSession();
+        if (!user) {
+          console.error("No user found");
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("assistant_settings")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching assistant settings:", error);
+          return;
+        }
+
+        if (data) {
+          setUrl(data.website_url || "");
+          setAssistantId(data.openai_assistant_id || "");
+        } else {
+          console.error("No assistant settings found");
+        }
+      } catch (error) {
+        console.error("Error in fetchAssistantSettings:", error);
+      }
+    };
+
+    fetchAssistantSettings();
   }, []);
+
+  useEffect(() => {
+    if (assistantId) {
+      fetchContent(url);
+    }
+  }, [assistantId, url]);
 
   const fetchContent = async (url: string) => {
     if (!url) return;
@@ -73,7 +119,7 @@ export default function Playground() {
           </h1>
 
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="flex items-center w-[200px] bg-[#F0F2F7] rounded-[15px] p-[5px] h-[50px]">
+            <div className="flex items-center bg-[#F0F2F7] rounded-[15px] p-[5px] h-[50px]">
               {["Desktop", "Mobile"].map((tab) => (
                 <div key={tab} className="flex-1">
                   <button
@@ -112,7 +158,7 @@ export default function Playground() {
             <div
               className={`border-[10px] border-[#E3E4EC] rounded-[10px] p-4 ${
                 view === "Mobile" ? "w-[305px]" : "w-[1248px]"
-              } h-[calc(100vh-375px)] overflow-hidden relative`}
+              } h-[calc(100vh-350px)] overflow-hidden relative`}
             >
               {view === "Desktop" ? (
                 <iframe
@@ -125,37 +171,44 @@ export default function Playground() {
                 <iframe
                   ref={iframeRef}
                   srcDoc={htmlContent}
-                  className="w-full h-[calc(100%-44px)]"
+                  className="w-full h-[calc(100%)]"
                   sandbox="allow-same-origin"
                 />
               )}
-              <div className="absolute bottom-0 w-full z-10">
-                <Bot mobile={view === "Mobile"} />
+              <div className="absolute bottom-5 right-5 h-full">
+                <Bot mobile={view === "Mobile"} parentHeight="100%" />
               </div>
             </div>
           )}
         </div>
       </div>
       {/* Footer */}
-      <footer className="p-6 flex justify-end mt-auto">
-        <Link
-          href="/onboarding/billing"
-          className="bg-[#6D67E4] text-white px-6 py-2 rounded-[10px] flex items-center"
+      <footer className="pr-[40px] pb-[20px] flex justify-end mt-auto">
+        <div
+          className="bg-[#6D67E4] text-white px-6 py-2 rounded-[10px] flex items-center cursor-pointer"
+          onClick={async () => {
+            const updateUserOnboardingStatus = await fetch(
+              "/api/users/update-onboarding",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ onboardingStatus: "playground_done" }),
+              }
+            );
+            router.push("/onboarding/early-access");
+          }}
         >
           Go Live
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="25"
-            height="24"
-            viewBox="0 0 25 24"
-            fill="none"
-          >
-            <path
-              d="M10.5198 5.32L13.7298 8.53L15.6998 10.49C16.5298 11.32 16.5298 12.67 15.6998 13.5L10.5198 18.68C9.83977 19.36 8.67977 18.87 8.67977 17.92V12.31V6.08C8.67977 5.12 9.83977 4.64 10.5198 5.32Z"
-              fill="white"
-            />
-          </svg>
-        </Link>
+          <Image
+            src="/icons/right-arrow.svg"
+            alt="arrow-right"
+            width={24}
+            height={24}
+            className="ml-2"
+          />
+        </div>
       </footer>
     </div>
   );

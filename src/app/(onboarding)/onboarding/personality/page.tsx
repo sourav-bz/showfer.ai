@@ -9,6 +9,7 @@ import PersonalitySettings from "./PersonalitySettings";
 import { usePersonalityStore, fetchAvailableVoices, Voice } from "./store";
 import Lottie from "lottie-react";
 import spinnerAnimation from "../../../../../public/loader/spinner.json";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Page() {
   const personalitySettings = usePersonalityStore();
@@ -77,9 +78,21 @@ export default function Page() {
         body: JSON.stringify(settingsToSave),
       });
 
+      const updateUserOnboardingStatus = await fetch(
+        "/api/users/update-onboarding",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ onboardingStatus: "personality_done" }),
+        }
+      );
+
       if (!response.ok) {
         setIsLoading(false);
-        throw new Error("Failed to save settings");
+        console.error("Error saving personality settings");
+        toast.error("Error saving personality settings");
       }
 
       setIsLoading(false);
@@ -88,12 +101,14 @@ export default function Page() {
     } catch (error) {
       setIsLoading(false);
       console.error("Error saving personality settings:", error);
+      toast.error("Error saving personality settings");
       // Handle error (e.g., show an error message to the user)
     }
   };
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg">
+      <Toaster />
       <main className="flex-grow flex">
         <div className="w-2/3 relative  flex flex-col items-center justify-center">
           <div className="absolute top-0 right-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[#E3E4EC] to-transparent"></div>
@@ -149,15 +164,7 @@ export default function Page() {
           onClick={handleSaveSettings}
           className="bg-[#6D67E4] text-white px-6 py-2 rounded-[10px] flex items-center"
         >
-          {isLoading ? (
-            <Lottie
-              animationData={spinnerAnimation}
-              style={{ width: 24, height: 24 }}
-            />
-          ) : (
-            "Next"
-          )}
-          {/* ... SVG icon */}
+          {isLoading ? "Saving..." : "Next"}
         </button>
       </footer>
     </div>

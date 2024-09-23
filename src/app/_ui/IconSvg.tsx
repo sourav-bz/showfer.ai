@@ -1,7 +1,7 @@
 import React from "react";
 
 interface IconSVGProps {
-  name: "voice" | "message-text" | "mic" | "play";
+  name: "voice" | "message-text" | "mic" | "play" | "bullet" | "mobile-orb-bg";
   color: string;
   className?: string; // Add className prop
 }
@@ -137,6 +137,118 @@ const IconSVG: React.FC<IconSVGProps> = ({ name, color, className }) => {
           d="M18.634 14.746C21.1315 13.303 21.1315 9.69699 18.634 8.25249L5.8765 0.87699C3.3775 -0.56751 0.25 1.23699 0.25 4.12449V18.8755C0.25 21.763 3.3775 23.5675 5.8765 22.1215L18.634 14.746Z"
           fill={color}
         />
+      </svg>
+    ),
+    bullet: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="7"
+        height="7"
+        viewBox="0 0 7 7"
+        fill="none"
+        className={className}
+      >
+        <circle
+          cx="3.5"
+          cy="3.5"
+          r="3.5"
+          transform="matrix(1 0 0 -1 0 7)"
+          fill={color}
+        />
+      </svg>
+    ),
+    "mobile-orb-bg": (
+      <svg
+        width="98"
+        height="98"
+        viewBox="0 0 98 98"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
+      >
+        <g filter="url(#filter0_i)">
+          <circle cx="48.6639" cy="48.6637" r="48.351" fill="white" />
+        </g>
+        <mask
+          id="mask0"
+          style={{ maskType: "alpha" }}
+          maskUnits="userSpaceOnUse"
+          x="0"
+          y="0"
+          width="98"
+          height="98"
+        >
+          <circle cx="48.6639" cy="48.6637" r="48.351" fill="#D9D9D9" />
+        </mask>
+        <g mask="url(#mask0)">
+          <g filter="url(#filter1_f)">
+            <circle
+              cx="84.0917"
+              cy="19.6239"
+              r="43.6949"
+              fill={color}
+              fillOpacity="0.8"
+            />
+          </g>
+        </g>
+        <defs>
+          <filter
+            id="filter0_i"
+            x="0.312988"
+            y="0.312744"
+            width="96.7019"
+            height="96.7019"
+            filterUnits="userSpaceOnUse"
+            colorInterpolationFilters="sRGB"
+          >
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
+            <feBlend
+              mode="normal"
+              in="SourceGraphic"
+              in2="BackgroundImageFix"
+              result="shape"
+            />
+            <feColorMatrix
+              in="SourceAlpha"
+              type="matrix"
+              values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+              result="hardAlpha"
+            />
+            <feOffset />
+            <feGaussianBlur stdDeviation="25.0709" />
+            <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
+            <feColorMatrix
+              type="matrix"
+              values={`0 0 0 0 ${
+                parseInt(color.slice(1, 3), 16) / 255
+              } 0 0 0 0 ${parseInt(color.slice(3, 5), 16) / 255} 0 0 0 0 ${
+                parseInt(color.slice(5, 7), 16) / 255
+              } 0 0 0 1 0`}
+            />
+            <feBlend mode="normal" in2="shape" result="effect1_innerShadow" />
+          </filter>
+          <filter
+            id="filter1_f"
+            x="21.9159"
+            y="-42.5519"
+            width="124.352"
+            height="124.352"
+            filterUnits="userSpaceOnUse"
+            colorInterpolationFilters="sRGB"
+          >
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
+            <feBlend
+              mode="normal"
+              in="SourceGraphic"
+              in2="BackgroundImageFix"
+              result="shape"
+            />
+            <feGaussianBlur
+              stdDeviation="9.2404"
+              result="effect1_foregroundBlur"
+            />
+          </filter>
+        </defs>
       </svg>
     ),
   };

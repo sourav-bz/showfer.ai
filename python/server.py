@@ -155,10 +155,10 @@ def create_assistant(user_id):
         if overall_status == "untrained":
             print(f"Name: {name}, Website URL: {website_url}, Current Status: {overall_status}")
             # Update overall_status to "in_progress"
-            supabase.table('assistant_settings').update({"overall_status": "in_progress"}).eq("id", settings_id).execute()
-            print("Status updated to 'in_progress'")
+            supabase.table('assistant_settings').update({"overall_status": "fetching_info"}).eq("id", settings_id).execute()
+            print("Status updated to 'fetching_info'")
 
-            assistant_id = scrape_domain(name, website_url, links_to_scrape)
+            assistant_id = scrape_domain(name, website_url, links_to_scrape, settings_id)
             supabase.table('assistant_settings').update({
                     "overall_status": "trained",
                     "openai_assistant_id": assistant_id
@@ -166,7 +166,7 @@ def create_assistant(user_id):
             print(f"Updated overall_status to 'trained' and saved assistant_id for settings_id: {settings_id}")
 
             return jsonify({"message": "Assistant creation started successfully"}), 200
-        elif overall_status == "in_progress":
+        elif overall_status == "in_progress" or overall_status == "fetching_info" or overall_status=="structuring_info" or overall_status == "creating_assistant":
             return jsonify({"message": "Assistant creation is already in progress"}), 400
         else:
             return jsonify({"message": "Assistant is already trained"}), 400

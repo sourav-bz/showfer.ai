@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
-import TextInterface from "@/app/(dashboard)/playground/_ui/TextInterface";
+import TextInterface from "@/app/_ui/ShowferWidget/TextInterface";
 import { usePersonalityStore } from "./store";
 import IconSVG from "@/app/_ui/IconSvg";
 import VoiceInterface from "./VoiceInterface";
