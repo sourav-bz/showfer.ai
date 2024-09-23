@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const PersonalityName: React.FC = () => {
+interface PersonalityNameProps {
+  isMobile: boolean;
+}
+
+const PersonalityName: React.FC<PersonalityNameProps> = ({ isMobile }) => {
   const personalities = [
     { name: "friendly", color: "#EAAF3B" },
     { name: "trustworthy", color: "#709291" },
@@ -37,7 +41,13 @@ const PersonalityName: React.FC = () => {
   }, []);
 
   return (
-    <span className="inline-block align-middle mr-4" style={{ height: "39px" }}>
+    <span
+      className="inline-block align-middle overflow-visible"
+      style={{
+        height: isMobile ? "35px" : "39px",
+        lineHeight: isMobile ? "35px" : "39px",
+      }}
+    >
       <AnimatePresence mode="wait">
         <motion.span
           key={currentPersonality}
@@ -52,18 +62,26 @@ const PersonalityName: React.FC = () => {
             duration: 0.5,
           }}
           className="
-            inline-block
+            inline-flex
+            items-center
             px-2.5 
-            py-[5px] 
             bg-white 
             rounded-md 
             whitespace-nowrap
             shadow-[0px_0px_19.8px_0px_rgba(31,28,70,0.11),0px_0px_15px_0px_rgba(52,47,127,0.00),0px_0px_13px_0px_rgba(52,47,127,0.01),0px_0px_11px_0px_rgba(52,47,127,0.05),0px_0px_8px_0px_rgba(52,47,127,0.09),0px_0px_5px_0px_rgba(52,47,127,0.10)]"
-          style={{ transform: "rotate(-8deg)" }}
+          style={{
+            transform: "rotate(-8deg)",
+            height: isMobile ? "35px" : "39px",
+            padding: "0 5px",
+            marginBottom: "20px",
+          }}
         >
           <span
-            className="text-xl font-medium leading-[29.23px]"
-            style={{ color: personalities[currentPersonality].color }}
+            className="font-medium"
+            style={{
+              color: personalities[currentPersonality].color,
+              fontSize: isMobile ? "1em" : "1em",
+            }}
           >
             {personalities[currentPersonality].name}
           </span>

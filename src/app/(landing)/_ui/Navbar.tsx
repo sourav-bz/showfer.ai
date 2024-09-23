@@ -16,16 +16,20 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className="bg-white p-3 shadow-sm mb-4 rounded-lg">
-      <div className=" flex justify-between items-center">
-        <Link href="/" className="flex items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-center">
+        <Link
+          href="/"
+          className="flex items-center justify-center w-full sm:w-auto sm:mb-0"
+        >
           <Image
-            src="/brand-logo/dark.svg"
+            src="./brand-logo/dark.svg"
             alt="Showfer.ai Logo"
             width={120}
             height={30}
+            className="w-[90px] h-[30px] sm:w-[120px] sm:h-[30px]"
           />
         </Link>
-        <div className="justify-end items-center gap-[15px] flex">
+        <div className="hidden sm:flex justify-end items-center gap-[15px] flex">
           <div className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex cursor-pointer">
             <div className="text-[#6d67e4] text-sm font-medium tracking-tight">
               {isMounted && (
