@@ -1,7 +1,14 @@
 import React from "react";
 
 interface IconSVGProps {
-  name: "voice" | "message-text" | "mic" | "play" | "bullet" | "mobile-orb-bg";
+  name:
+    | "voice"
+    | "message-text"
+    | "mic"
+    | "play"
+    | "bullet"
+    | "mobile-orb-bg"
+    | "send";
   color: string;
   className?: string; // Add className prop
 }
@@ -249,6 +256,21 @@ const IconSVG: React.FC<IconSVGProps> = ({ name, color, className }) => {
             />
           </filter>
         </defs>
+      </svg>
+    ),
+    send: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="25"
+        viewBox="0 0 24 25"
+        fill="none"
+        className={className}
+      >
+        <path
+          d="M18.0698 9.00989L9.50978 4.72989C3.75978 1.84989 1.39978 4.20989 4.27978 9.95989L5.14978 11.6999C5.39978 12.2099 5.39978 12.7999 5.14978 13.3099L4.27978 15.0399C1.39978 20.7899 3.74978 23.1499 9.50978 20.2699L18.0698 15.9899C21.9098 14.0699 21.9098 10.9299 18.0698 9.00989ZM14.8398 13.2499H9.43977C9.02978 13.2499 8.68977 12.9099 8.68977 12.4999C8.68977 12.0899 9.02978 11.7499 9.43977 11.7499H14.8398C15.2498 11.7499 15.5898 12.0899 15.5898 12.4999C15.5898 12.9099 15.2498 13.2499 14.8398 13.2499Z"
+          fill={color}
+        />
       </svg>
     ),
   };

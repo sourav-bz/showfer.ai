@@ -1,9 +1,8 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import OpenAI from "openai";
-import { usePlaygroundStore } from "../../../../dashboard/_store/PlaygroundStore";
-import { PersonalitySettings } from "../../_types/Widget";
-import IconSVG from "@/app/_ui/IconSvg";
+import { usePlaygroundStore } from "@/app/dashboard/_store/PlaygroundStore";
+import { PersonalitySettings } from "@/app/_ui/ShowferWidget/_types/Widget";
 
 const configuration = {
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
@@ -19,7 +18,7 @@ interface TextInterfaceProps {
   personalitySettings: PersonalitySettings;
 }
 
-export default function MobileText({
+export default function TextInterface({
   handleSendMessage,
   personalitySettings,
 }: TextInterfaceProps) {
@@ -72,7 +71,7 @@ export default function MobileText({
           </div>
         ))}
       </div>
-      <div className="flex p-2 sticky bottom-0 bg-white items-center border-t border-[#E3E4EC]">
+      <div className="flex p-2 sticky bottom-0 bg-white">
         <input
           ref={inputRef}
           type="text"
@@ -86,9 +85,8 @@ export default function MobileText({
           }}
           onClick={() => inputRef.current?.focus()}
           placeholder="Ask whatever you want."
-          className={`flex-grow bg-white text-black rounded-lg p-2 placeholder:text-sm focus:outline-none focus:ring-2 focus:ring-[${personalitySettings.primaryColor}]`}
+          className={`flex-grow bg-[#F0F2F7] text-black rounded-lg p-2 placeholder:text-sm focus:outline-none focus:ring-2 focus:ring-[${personalitySettings.primaryColor}]`}
         />
-        <IconSVG name="send" color={personalitySettings.primaryColor} />
       </div>
     </div>
   );

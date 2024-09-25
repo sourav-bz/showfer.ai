@@ -45,7 +45,7 @@ export default function MobileVoice({
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div className="rounded-full bg-white p-1 w-[70px] h-[70px] blur-sm"></div>
           </div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85px] h-[88px]">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[80px] h-[80px]">
             <Image
               src={
                 characters.find(
@@ -54,14 +54,14 @@ export default function MobileVoice({
               }
               alt="Avatar"
               className="rounded-full"
-              width={85}
-              height={88}
+              width={70}
+              height={70}
               objectFit="contain"
             />
           </div>
         </div>
-        <div className="w-2/3 flex flex-col items-center pl-2">
-          <button className="flex self-end" onClick={toggleMode}>
+        <div className="w-2/3 flex flex-col items-center pl-2 bg-[#F0F2F7] rounded-lg">
+          <button className="ml-auto mr-1 mt-1" onClick={toggleMode}>
             <div
               className="flex bg-[#6D67E4] text-white rounded-md p-1 text-[10px] mb-2"
               style={{ backgroundColor: personalitySettings?.primaryColor }}
@@ -77,7 +77,7 @@ export default function MobileVoice({
               Chat
             </div>
           </button>
-          <p className="text-[11px] text-center mb-0.5">
+          <p className="text-xs text-center mb-0.5 max-w-[200px]">
             Hi, how can I help you?
           </p>
           <button>

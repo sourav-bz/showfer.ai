@@ -145,24 +145,37 @@ export default function VoiceInterface({ mobile }: { mobile: boolean }) {
 
   return (
     <div
-      className={` ${
+      className={`${
         mobile ? "" : "h-full p-6 flex flex-col justify-center items-center"
       }`}
     >
       {!mobile && (
         <div className="mb-8">
           {visualizer === "Orb" ? (
-            <VoiceOrb width={200} height={200} />
+            <VoiceOrb width={150} height={150} color={character.primaryColor} />
           ) : dimensions === "2D" ? (
-            <Image
-              src={character.avatar}
-              width={200}
-              height={200}
-              alt={character.name}
-              className="rounded-full"
-            />
+            <div className="w-[150px] h-[150px] relative mb-4">
+              <IconSVG
+                name="mobile-orb-bg"
+                color={character.primaryColor}
+                className="w-[150px] h-[150px]"
+              />
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <div className="rounded-full bg-white p-1 w-[130px] h-[130px] blur-sm"></div>
+              </div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150px] h-[150px]">
+                <Image
+                  src={character.avatar}
+                  alt={character.name}
+                  className="rounded-full"
+                  width={150}
+                  height={150}
+                  objectFit="contain"
+                />
+              </div>
+            </div>
           ) : (
-            <div style={{ width: 250, height: 300 }}>
+            <div style={{ width: 250, height: 170 }}>
               <Canvas shadows>
                 <color attach="background" args={["#fff"]} />
                 <PerspectiveCamera
@@ -182,6 +195,10 @@ export default function VoiceInterface({ mobile }: { mobile: boolean }) {
         </div>
       )}
 
+      <div className="bg-[#F0F2F7] w-[220px] px-[4px] py-[4px] text-xs font-light rounded-lg text-center mb-4">
+        Hi, how can i help you?
+      </div>
+
       {selectedTab === "Personality" ? (
         <button>
           <IconSVG
@@ -189,7 +206,7 @@ export default function VoiceInterface({ mobile }: { mobile: boolean }) {
             color={character.primaryColor}
             className={`${
               isRecording ? "animate-pulse " : ""
-            } transition-all duration-300`}
+            } transition-all duration-300 w-12 h-12`}
           />
         </button>
       ) : (
@@ -205,7 +222,7 @@ export default function VoiceInterface({ mobile }: { mobile: boolean }) {
             color={character.primaryColor}
             className={`${
               isPlaying ? "animate-pulse " : ""
-            } transition-all duration-300`}
+            } transition-all duration-300 w-12 h-12`}
           />
         </div>
       )}

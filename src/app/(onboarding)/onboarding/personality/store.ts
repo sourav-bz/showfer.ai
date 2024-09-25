@@ -5,37 +5,37 @@ export const characters = [
   {
     id: 1,
     name: "Dr. Aman",
-    avatar: "/personality/trustworthy-bg.jpg",
+    avatar: "/personality/trustworthy.png",
     primaryColor: "#709291",
   },
   {
     id: 2,
     name: "Imogen",
-    avatar: "/personality/creative-bg.jpg",
+    avatar: "/personality/creative.png",
     primaryColor: "#EAAF3B",
   },
   {
     id: 3,
     name: "Conrad",
-    avatar: "/personality/friendly-bg.jpg",
+    avatar: "/personality/friendly.png",
     primaryColor: "#EAAF3B",
   },
   {
     id: 4,
     name: "Edison",
-    avatar: "/personality/innovative-bg.jpg",
+    avatar: "/personality/innovative.png",
     primaryColor: "#4A959B",
   },
   {
     id: 5,
     name: "Buddy",
-    avatar: "/personality/playful-bg.jpg",
+    avatar: "/personality/playful.png",
     primaryColor: "#DA884B",
   },
   {
     id: 6,
     name: "Griffin",
-    avatar: "/personality/rugged-bg.jpg",
+    avatar: "/personality/rugged.png",
     primaryColor: "#C8924D",
   },
   {

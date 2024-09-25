@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import Image from "next/image";
-import TextInterface from "@/app/_ui/ShowferWidget/TextInterface";
 import { usePersonalityStore } from "./store";
 import IconSVG from "@/app/_ui/IconSvg";
 import VoiceInterface from "./VoiceInterface";
+import TextInterface from "./TextInterface";
 
 const PreviewWindow = () => {
   const [isChatMode, setIsChatMode] = useState(false);
@@ -14,7 +14,7 @@ const PreviewWindow = () => {
       className={`bg-white shadow-md overflow-hidden flex flex-col ${
         mobile
           ? "w-[276px] h-[560px] -mb-7 -mr-3 rounded-[20px]"
-          : "w-[330px] h-[530px] mb-4 rounded-lg"
+          : "w-[300px] h-[430px] mb-4 rounded-lg"
       }`}
     >
       <div
@@ -47,7 +47,10 @@ const PreviewWindow = () => {
         </button>
       </div>
       {isChatMode ? (
-        <TextInterface handleSendMessage={() => {}} />
+        <TextInterface
+          personalitySettings={{ character }}
+          handleSendMessage={() => {}}
+        />
       ) : (
         <VoiceInterface mobile={false} handleSendMessage={() => {}} />
       )}

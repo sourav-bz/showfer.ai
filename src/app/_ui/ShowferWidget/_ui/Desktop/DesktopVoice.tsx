@@ -59,19 +59,32 @@ export default function DesktopVoice({
             color={personalitySettings?.primaryColor}
           />
         ) : personalitySettings.dimensions === "2D" ? (
-          <Image
-            src={
-              characters.find(
-                (c) => c.name === personalitySettings.character.name
-              )?.avatar!
-            }
-            width={200}
-            height={200}
-            alt={character.name}
-            className="rounded-full"
-          />
+          <div className="w-[150px] h-[150px] relative mb-4">
+            <IconSVG
+              name="mobile-orb-bg"
+              color={personalitySettings?.primaryColor}
+              className="w-[150px] h-[150px]"
+            />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="rounded-full bg-white p-1 w-[130px] h-[130px] blur-sm"></div>
+            </div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150px] h-[150px]">
+              <Image
+                src={
+                  characters.find(
+                    (c) => c.name === personalitySettings.character.name
+                  )?.avatar!
+                }
+                alt="Avatar"
+                className="rounded-full"
+                width={150}
+                height={150}
+                objectFit="contain"
+              />
+            </div>
+          </div>
         ) : (
-          <div style={{ width: 250, height: 300 }}>
+          <div style={{ width: 250, height: 170 }}>
             <Canvas shadows>
               <color attach="background" args={["#fff"]} />
               <PerspectiveCamera
@@ -93,6 +106,9 @@ export default function DesktopVoice({
             </Canvas>
           </div>
         )}
+      </div>
+      <div className="bg-[#F0F2F7] w-[220px] px-[4px] py-[4px] text-xs font-light rounded-lg text-center mb-4">
+        Hi, how can i help you?
       </div>
       <button>
         <IconSVG
