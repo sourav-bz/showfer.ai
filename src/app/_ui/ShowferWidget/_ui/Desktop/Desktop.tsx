@@ -1,43 +1,23 @@
+"use client";
+
 import DesktopText from "./DesktopText";
 import DesktopVoice from "./DesktopVoice";
 import { PersonalitySettings } from "../../_types/Widget";
 import DesktopHeader from "./DesktopHeader";
+import { useBotStore } from "../../_store/botStore";
 
-export default function Desktop({
-  personalitySettings,
-  handleSendMessage,
-  toggleChat,
-  isChatMode,
-  toggleMode,
-}: {
-  personalitySettings: PersonalitySettings;
-  handleSendMessage: (
-    message: string,
-    setMessage: (message: string) => void
-  ) => void;
-  toggleChat: () => void;
-  isChatMode: boolean;
-  toggleMode: () => void;
-}) {
+export default function Desktop() {
+  const botStore = useBotStore();
+  const { personalitySettings, isChatMode, setIsChatMode } = botStore;
+
   return (
     <div className="w-[280px] h-[400px] mb-2 rounded-[20px] bg-white shadow-md overflow-hidden flex flex-col">
       <DesktopHeader
         personalitySettings={personalitySettings}
         isChatMode={isChatMode}
-        toggleMode={toggleMode}
+        toggleMode={() => setIsChatMode(!isChatMode)}
       />
-      {isChatMode ? (
-        <DesktopText
-          personalitySettings={personalitySettings}
-          handleSendMessage={handleSendMessage}
-        />
-      ) : (
-        <DesktopVoice
-          personalitySettings={personalitySettings}
-          toggleChat={toggleChat}
-          toggleMode={toggleMode}
-        />
-      )}
+      {isChatMode ? <DesktopText /> : <DesktopVoice />}
     </div>
   );
 }

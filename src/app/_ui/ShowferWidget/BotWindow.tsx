@@ -1,45 +1,14 @@
-import React, { useState } from "react";
-import { PersonalitySettings } from "./_types/Widget";
+"use client";
+
+import React from "react";
 import Mobile from "./_ui/Mobile/Mobile";
 import Desktop from "./_ui/Desktop/Desktop";
+import { useBotStore } from "./_store/botStore";
 
-const BotWindow = ({
-  mobile,
-  toggleChat,
-  personalitySettings,
-  assistantId,
-}: {
-  mobile?: boolean;
-  toggleChat: () => void;
-  personalitySettings: PersonalitySettings;
-  assistantId: string;
-}) => {
-  const [isChatMode, setIsChatMode] = useState(false);
+const BotWindow = () => {
+  const botStore = useBotStore();
 
-  const toggleMode = () => setIsChatMode(!isChatMode);
-  const handleSendMessage = (
-    message: string,
-    setMessage: (message: string) => void
-  ) => {
-    console.log(message);
-  };
-
-  const renderInterface = () => {
-    const props = {
-      personalitySettings,
-      handleSendMessage,
-      toggleChat,
-      isChatMode,
-      toggleMode,
-    };
-    if (mobile) {
-      return <Mobile {...props} />;
-    } else {
-      return <Desktop {...props} />;
-    }
-  };
-
-  return <>{renderInterface()}</>;
+  return <>{botStore.isMobile ? <Mobile /> : <Desktop />}</>;
 };
 
 export default BotWindow;

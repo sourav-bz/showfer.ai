@@ -7,6 +7,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { usePlaygroundStore } from "@/app/dashboard/_store/PlaygroundStore";
 import Bot from "@/app/_ui/ShowferWidget/Bot";
 import toast, { Toaster } from "react-hot-toast"; // Change this line
+import { useBotStore } from "@/app/_ui/ShowferWidget/_store/botStore";
 
 export default function Playground() {
   const [url, setUrl] = useState<string>("https://mlada.in");
@@ -21,6 +22,12 @@ export default function Playground() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const fullScreenContainerRef = useRef<HTMLDivElement>(null);
   const [currentUrl, setCurrentUrl] = useState<string>("https://mlada.in");
+
+  const { setIsMobile } = useBotStore();
+
+  useEffect(() => {
+    setIsMobile(view === "Mobile");
+  }, [view]);
 
   const getUserSession = async () => {
     const {
@@ -68,16 +75,6 @@ export default function Playground() {
       fetchContent(currentUrl);
     }
   }, [assistantId, currentUrl]);
-
-  useEffect(() => {
-    if (htmlContent) {
-      const timer = setTimeout(() => {
-        setCurrentUrl("https://mlada.in/collections/best-seller");
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [htmlContent]);
 
   const toggleFullScreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -261,7 +258,7 @@ export default function Playground() {
                 )}
               </div>
               <div className="absolute bottom-0 right-0 h-full w-full">
-                <Bot mobile={view === "Mobile"} parentHeight="100%" />
+                <Bot />
               </div>
               <Toaster
                 containerStyle={{

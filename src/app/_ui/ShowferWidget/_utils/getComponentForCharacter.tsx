@@ -9,7 +9,7 @@ import Sassy from "@/app/_ui/Characters/Sassy";
 
 export const getComponentForCharacter = (
   character: any,
-  storyState: "user" | "assistant"
+  storyState: "user" | "assistant" | "neutral"
 ) => {
   switch (character.id) {
     case 1:

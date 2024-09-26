@@ -17,7 +17,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({
   return (
     <div
       className="bg-[#6D67E4] p-4 flex justify-between items-center"
-      style={{ backgroundColor: personalitySettings.primaryColor }}
+      style={{ backgroundColor: personalitySettings?.primaryColor }}
     >
       <div className="items-center">
         <Image

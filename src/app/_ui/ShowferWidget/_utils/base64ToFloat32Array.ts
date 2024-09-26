@@ -1,4 +1,4 @@
-export const base64ToFloat32Array = (base64) => {
+export const base64ToFloat32Array = (base64: string) => {
   const binaryString = window.atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);

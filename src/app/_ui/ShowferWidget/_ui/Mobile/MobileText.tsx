@@ -1,28 +1,11 @@
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import OpenAI from "openai";
 import { usePlaygroundStore } from "../../../../dashboard/_store/PlaygroundStore";
-import { PersonalitySettings } from "../../_types/Widget";
 import IconSVG from "@/app/_ui/IconSvg";
+import { useBotStore } from "../../_store/botStore";
 
-const configuration = {
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true, // Required for client-side use
-};
-const openai = new OpenAI(configuration);
-
-interface TextInterfaceProps {
-  handleSendMessage: (params: {
-    message: string;
-    setMessage: React.Dispatch<React.SetStateAction<string>>;
-  }) => void;
-  personalitySettings: PersonalitySettings;
-}
-
-export default function MobileText({
-  handleSendMessage,
-  personalitySettings,
-}: TextInterfaceProps) {
+export default function MobileText() {
+  const botStore = useBotStore();
+  const { personalitySettings } = botStore;
   const [message, setMessage] = useState("");
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -31,9 +14,9 @@ export default function MobileText({
 
   useEffect(() => {
     const fetchMessages = async () => {
-      const thread = await openai.beta.threads.create();
-      console.log("thread: ", thread.id);
-      setMessageThread(thread);
+      // const thread = await openai.beta.threads.create();
+      // console.log("thread: ", thread.id);
+      // setMessageThread(thread);
     };
     if (!messageThread) {
       fetchMessages();
@@ -81,7 +64,7 @@ export default function MobileText({
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              handleSendMessage({ message: message, setMessage });
+              // handleSendMessage({ message: message, setMessage });
             }
           }}
           onClick={() => inputRef.current?.focus()}

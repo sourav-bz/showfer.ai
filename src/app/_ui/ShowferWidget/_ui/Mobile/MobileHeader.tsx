@@ -2,18 +2,11 @@ import React from "react";
 import Image from "next/image";
 import IconSVG from "@/app/_ui/IconSvg";
 import { PersonalitySettings } from "../../_types/Widget";
+import { useBotStore } from "../../_store/botStore";
 
-interface MobileHeaderProps {
-  personalitySettings: PersonalitySettings;
-  isChatMode: boolean;
-  toggleMode: () => void;
-}
-
-const MobileHeader: React.FC<MobileHeaderProps> = ({
-  personalitySettings,
-  isChatMode,
-  toggleMode,
-}) => {
+export default function MobileHeader() {
+  const botStore = useBotStore();
+  const { personalitySettings, isChatMode, toggleMedium } = botStore;
   return (
     <div
       className="bg-[#6D67E4] p-4 flex justify-between items-center"
@@ -32,7 +25,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
         </div>
       </div>
       <button
-        onClick={toggleMode}
+        onClick={toggleMedium}
         className="bg-white text-indigo-500 px-2 py-1 rounded-lg text-sm font-medium flex items-center"
       >
         <IconSVG
@@ -46,6 +39,4 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
       </button>
     </div>
   );
-};
-
-export default MobileHeader;
+}

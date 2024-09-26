@@ -4,21 +4,16 @@ import { useSwipeable } from "react-swipeable";
 import { characters } from "@/app/(onboarding)/onboarding/personality/store";
 import { PersonalitySettings } from "../../_types/Widget";
 import IconSVG from "@/app/_ui/IconSvg";
+import { useBotStore } from "../../_store/botStore";
 
-export default function MobileVoice({
-  personalitySettings,
-  toggleChat,
-  toggleMode,
-}: {
-  personalitySettings: PersonalitySettings;
-  toggleChat: () => void;
-  toggleMode: () => void;
-}) {
+export default function MobileVoice() {
+  const botStore = useBotStore();
+  const { personalitySettings, toggleChatWindow, toggleMedium } = botStore;
   const [isRecording, setIsRecording] = useState(false);
 
   const handleSwiped = (event: any) => {
     if (event.dir === "Down") {
-      toggleChat();
+      toggleChatWindow();
     }
   };
 
@@ -61,7 +56,7 @@ export default function MobileVoice({
           </div>
         </div>
         <div className="w-2/3 flex flex-col items-center pl-2 bg-[#F0F2F7] rounded-lg">
-          <button className="ml-auto mr-1 mt-1" onClick={toggleMode}>
+          <button className="ml-auto mr-1 mt-1" onClick={toggleMedium}>
             <div
               className="flex bg-[#6D67E4] text-white rounded-md p-1 text-[10px] mb-2"
               style={{ backgroundColor: personalitySettings?.primaryColor }}
