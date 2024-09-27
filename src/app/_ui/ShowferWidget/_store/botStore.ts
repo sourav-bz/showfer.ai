@@ -5,6 +5,7 @@ import { WebSocketManager } from "../_utils/WebSocketManager";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  products?: ProductRecommendation[];
 }
 
 interface ProductRecommendation {
@@ -137,6 +138,7 @@ export const useBotStore = create<BotState>((set, get) => ({
     if (role === "assistant") {
       const urlRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
       const currentUrl = get().url;
+      let newProductRecommendations: ProductRecommendation[] = [];
 
       let match;
       while ((match = urlRegex.exec(content)) !== null) {
@@ -154,21 +156,44 @@ export const useBotStore = create<BotState>((set, get) => ({
           }${productUrl}`;
         }
 
-        await get().addProductRecommendation(name, productUrl);
+        const productRecommendation = await get().addProductRecommendation(
+          name,
+          productUrl
+        );
+        newProductRecommendations.push(productRecommendation);
+      }
+
+      // Add product recommendations to the conversation history
+      if (newProductRecommendations.length > 0) {
+        set((state) => ({
+          conversationHistory: [
+            ...state.conversationHistory,
+            {
+              role: "assistant",
+              content: "",
+              products: newProductRecommendations,
+            },
+          ],
+        }));
       }
     }
   },
-  addProductRecommendation: async (name: string, productUrl: string) => {
+  addProductRecommendation: async (
+    name: string,
+    productUrl: string
+  ): Promise<ProductRecommendation> => {
     let finalImage = "";
     if (!finalImage) {
       finalImage = (await getPreviewImage(productUrl)) || "";
     }
+    const newRecommendation = { name, image: finalImage, productUrl };
     set((state) => ({
       productRecommendations: [
         ...state.productRecommendations,
-        { name, image: finalImage, productUrl },
+        newRecommendation,
       ],
     }));
+    return newRecommendation;
   },
 }));
 

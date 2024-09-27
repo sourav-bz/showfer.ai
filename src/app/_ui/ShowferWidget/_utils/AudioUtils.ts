@@ -121,6 +121,7 @@ const initWebSocket = () => {
     if (typeof event.data === "string") {
       try {
         const eventData = JSON.parse(event.data);
+        console.log("eventData", eventData);
         if (eventData?.type === "transcript_and_response") {
           if (eventData?.transcript) {
             console.log("Transcript:", eventData?.transcript);

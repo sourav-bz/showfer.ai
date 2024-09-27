@@ -7,7 +7,6 @@ import IconSVG from "@/app/_ui/IconSvg";
 import { useBotStore } from "../../_store/botStore";
 import VoiceEnd from "../Desktop/VoiceEnd";
 import VoiceStart from "../Desktop/VoiceStart";
-import VoiceLogic from "../VoiceLogic";
 import { useAudioStore } from "../../_store/audioStore";
 import { useAnimation, motion } from "framer-motion";
 import { useEffect, useMemo } from "react";

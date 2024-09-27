@@ -14,7 +14,6 @@ import VoiceOrb from "../Orb/VoiceOrb";
 import { useBotStore } from "../../_store/botStore";
 import VoiceEnd from "./VoiceEnd";
 import VoiceStart from "./VoiceStart";
-import VoiceLogic from "../VoiceLogic";
 import { motion, useAnimation } from "framer-motion";
 import { useAudioStore } from "../../_store/audioStore";
 import { useVoiceLogic } from "../../_store/voiceLogicProvider";
