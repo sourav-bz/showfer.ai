@@ -5,11 +5,13 @@ export default function VoiceEnd({
   disable,
   onClick,
   className,
+  isMobile,
 }: {
   color: string;
   disable: boolean;
   onClick: () => void;
   className?: string;
+  isMobile: boolean;
 }) {
   return (
     <button
@@ -32,9 +34,11 @@ export default function VoiceEnd({
         <IconSVG name="call" color={color} />
       </div>
 
-      <div className="ml-2 text-sm font-medium mr-1" style={{ color: color }}>
-        End
-      </div>
+      {!isMobile && (
+        <div className="ml-2 text-sm font-medium mr-1" style={{ color: color }}>
+          End
+        </div>
+      )}
     </button>
   );
 }

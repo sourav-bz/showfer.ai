@@ -239,9 +239,7 @@ export default function VoiceInterface({ mobile }: { mobile: boolean }) {
           <IconSVG
             name="play"
             color={character.primaryColor}
-            className={`${
-              isPlaying ? "animate-pulse " : ""
-            } transition-all duration-300 w-12 h-12`}
+            className={`w-[20px] h-[20px]`}
           />
         </div>
       )}

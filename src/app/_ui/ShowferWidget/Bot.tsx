@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion"; // Add this import
-import BotWindow from "./BotWindow";
+import { motion, AnimatePresence } from "framer-motion";
 import OrbIcon from "./_ui/Orb/OrbIcon";
 import { fetchUserData } from "@/app/_utils/fetchUserData";
 import { useBotStore } from "./_store/botStore";
+import Mobile from "./_ui/Mobile/Mobile";
+import Desktop from "./_ui/Desktop/Desktop";
+import { EmotionControl } from "@cartesia/cartesia-js";
+import { VoiceLogicProvider } from "./_store/voiceLogicProvider";
 
 const Bot = () => {
   const botStore = useBotStore();
@@ -22,30 +25,27 @@ const Bot = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    console.log("isMobile", botStore.isMobile);
+  }, [botStore.isMobile]);
+
   return (
-    <div className="flex flex-col mt-auto items-end justify-end h-full">
-      <AnimatePresence>
-        {botStore.isOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.3 }}
-          >
-            <BotWindow />
-          </motion.div>
+    <VoiceLogicProvider>
+      <div className="flex flex-col mt-auto items-end justify-end h-full w-full">
+        {botStore.personalitySettings &&
+          botStore.isOpen &&
+          (botStore.isMobile ? <Mobile /> : <Desktop />)}
+        {(!botStore.isMobile || !botStore.isOpen) && (
+          <button onClick={botStore.toggleChatWindow}>
+            <OrbIcon
+              width={botStore.isMobile ? 40 : 50}
+              height={botStore.isMobile ? 40 : 50}
+              primaryColor={botStore.personalitySettings?.primaryColor}
+            />
+          </button>
         )}
-      </AnimatePresence>
-      {(!botStore.isMobile || !botStore.isOpen) && (
-        <button onClick={botStore.toggleChatWindow}>
-          <OrbIcon
-            width={botStore.isMobile ? 40 : 50}
-            height={botStore.isMobile ? 40 : 50}
-            primaryColor={botStore.personalitySettings?.primaryColor}
-          />
-        </button>
-      )}
-    </div>
+      </div>
+    </VoiceLogicProvider>
   );
 };
 

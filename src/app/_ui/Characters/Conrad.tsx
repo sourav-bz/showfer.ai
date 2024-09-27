@@ -25,13 +25,13 @@ export default function Conrad(props) {
   ) as GLTFResult;
 
   useEffect(() => {
-    if (!props.storyState) return;
+    if (!props.isAudioPlaying) return;
 
     let animationFrameId;
     let talkValue = 0;
 
     const animateTalk = () => {
-      if (props.storyState === "assistant") {
+      if (props.isAudioPlaying) {
         // Toggle between 0 and 1
         talkValue = talkValue === 0 ? 1 : 0;
 
@@ -53,7 +53,7 @@ export default function Conrad(props) {
         clearTimeout(animationFrameId);
       }
     };
-  }, [props.storyState, nodes.Character_1st]);
+  }, [props.isAudioPlaying, nodes.Character_1st]);
 
   useEffect(() => {
     console.log(

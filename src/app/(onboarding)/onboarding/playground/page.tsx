@@ -24,7 +24,8 @@ export default function Playground() {
   const fullScreenContainerRef = useRef<HTMLDivElement>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const { setIsMobile, setUrl, currentUrl, setCurrentUrl } = useBotStore();
+  const { setIsMobile, isMobile, setUrl, currentUrl, setCurrentUrl } =
+    useBotStore();
 
   useEffect(() => {
     setIsMobile(view === "Mobile");
@@ -298,7 +299,11 @@ export default function Playground() {
                     />
                   )}
                 </div>
-                <div className="absolute bottom-2 right-2 h-full w-full">
+                <div
+                  className={`absolute ${
+                    isMobile ? "bottom-0 right-0" : "bottom-2 right-2"
+                  }`}
+                >
                   <Bot />
                 </div>
                 <Toaster

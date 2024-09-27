@@ -11,13 +11,13 @@ export default function Buddy(props) {
   const { nodes, materials } = useGLTF("/models/2b_Character.gltf");
 
   useEffect(() => {
-    if (!props.storyState) return;
+    if (!props.isAudioPlaying) return;
 
     let animationFrameId;
     let talkValue = 0;
 
     const animateTalk = () => {
-      if (props.storyState === "assistant") {
+      if (props.isAudioPlaying) {
         // Toggle between 0 and 1
         talkValue = talkValue === 0 ? 1 : 0;
 
@@ -39,7 +39,7 @@ export default function Buddy(props) {
         clearTimeout(animationFrameId);
       }
     };
-  }, [props.storyState, nodes.Character_2nd]);
+  }, [props.isAudioPlaying, nodes.Character_2nd]);
 
   useEffect(() => {
     console.log(

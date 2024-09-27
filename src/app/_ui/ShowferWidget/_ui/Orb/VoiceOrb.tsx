@@ -5,14 +5,15 @@ const VoiceOrb = ({
   height = 405,
   blurBallOffset = 600,
   rotationDuration = 10,
-  color = "#6D67E4", // New color prop with default value
+  color = "#6D67E4",
+  pulseDuration = 2, // New prop for controlling pulse speed
 }) => {
   // Calculate scale based on provided width (assuming width and height are equal)
   const scale = width / 1350;
 
   return (
     <div
-      className="relative"
+      className="relative pulsating-orb"
       style={{ width: `${width}px`, height: `${height}px` }}
     >
       <svg
@@ -110,6 +111,9 @@ const VoiceOrb = ({
         </g>
       </svg>
       <style jsx>{`
+        .pulsating-orb {
+          animation: pulse ${pulseDuration}s ease-in-out infinite;
+        }
         .rotating-blur {
           animation: rotate ${rotationDuration}s linear infinite;
           transform-origin: 675px 675px;
@@ -120,6 +124,15 @@ const VoiceOrb = ({
           }
           to {
             transform: rotate(360deg);
+          }
+        }
+        @keyframes pulse {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
           }
         }
       `}</style>

@@ -5,15 +5,17 @@ export default function VoiceStart({
   disable,
   onClick,
   className,
+  isMobile,
 }: {
   color: string;
   disable: boolean;
   onClick: () => void;
   className?: string;
+  isMobile: boolean;
 }) {
   return (
     <button
-      className={`flex items-center justify-center cursor-pointer bg-white rounded-full p-[5px] ${className}`}
+      className={`flex items-center justify-center cursor-pointer bg-white rounded-full p-[3px] ${className}`}
       style={{
         boxShadow: `0px 0px 9px 0px rgba(31, 28, 70, 0.13)`,
       }}
@@ -29,12 +31,18 @@ export default function VoiceStart({
           )}, ${parseInt(color.slice(5, 7), 16)}, 0.3)`,
         }}
       >
-        <IconSVG name="call" color={color} />
+        <IconSVG
+          name="call"
+          color={color}
+          className={isMobile ? "w-[10px] h-[10px]" : ""}
+        />
       </div>
 
-      <div className="ml-2 text-sm font-medium mr-1" style={{ color: color }}>
-        Start
-      </div>
+      {!isMobile && (
+        <div className="ml-2 text-sm font-medium mr-1" style={{ color: color }}>
+          Start
+        </div>
+      )}
     </button>
   );
 }
