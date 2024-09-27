@@ -15,6 +15,8 @@ import IconSVG from "@/app/_ui/IconSvg";
 import VoiceOrb from "../Orb/VoiceOrb";
 import { useBotStore } from "../../_store/botStore";
 import * as protobuf from "protobufjs";
+import VoiceEnd from "./VoiceEnd";
+import VoiceStart from "./VoiceStart";
 
 const SAMPLE_RATE = 16000;
 const NUM_CHANNELS = 1;
@@ -24,9 +26,17 @@ const NodCamera = ({ talkingState }) => {
   return null;
 };
 
+import { motion, AnimatePresence } from "framer-motion";
+
 export default function DesktopVoice() {
   const botStore = useBotStore();
-  const { personalitySettings } = botStore;
+  const {
+    personalitySettings,
+    addToConversation,
+    conversationHistory,
+    productRecommendations,
+    setCurrentUrl,
+  } = botStore;
   const [transcript, setTranscript] = useState("");
   const [isRecording, setIsRecording] = useState(false);
 
@@ -80,12 +90,34 @@ export default function DesktopVoice() {
   };
 
   const handleWebSocketMessage = (event) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const arrayBuffer = reader.result as ArrayBuffer;
-      enqueueAudioFromProto(arrayBuffer);
-    };
-    reader.readAsArrayBuffer(event.data);
+    if (typeof event.data === "string") {
+      try {
+        const eventData = JSON.parse(event.data);
+        if (eventData?.type === "transcript_and_response") {
+          if (eventData?.transcript) {
+            console.log("Transcript:", eventData?.transcript);
+            addToConversation("user", eventData?.transcript);
+            // Update UI with transcript
+          }
+          if (eventData?.llm_response) {
+            console.log("LLM Response:", eventData?.llm_response);
+            addToConversation("assistant", eventData?.llm_response);
+            // Update UI with LLM response
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+        // Handle the error appropriately
+      }
+    } else {
+      // Handle binary data (assuming it's audio data)
+      const reader = new FileReader();
+      reader.onload = () => {
+        const arrayBuffer = reader.result as ArrayBuffer;
+        enqueueAudioFromProto(arrayBuffer);
+      };
+      reader.readAsArrayBuffer(event.data);
+    }
   };
 
   const audioQueueRef = useRef([]);
@@ -114,7 +146,6 @@ export default function DesktopVoice() {
   const enqueueAudioFromProto = (arrayBuffer) => {
     try {
       const parsedFrame = frameRef.current.decode(new Uint8Array(arrayBuffer));
-
       if (!parsedFrame?.audio?.audio) {
         return false;
       }
@@ -193,7 +224,6 @@ export default function DesktopVoice() {
 
       audioWorkletNodeRef.current.port.onmessage = (event) => {
         if (!wsRef.current) return;
-
         const { audioData } = event.data;
         const frame = frameRef.current.create({
           audio: {
@@ -220,37 +250,7 @@ export default function DesktopVoice() {
     console.log("Audio error type:", error.name);
     console.log("Audio error message:", error.message);
     console.log("Microphone status:", microphoneStatus);
-
-    if (microphoneStatus === "granted") {
-      setErrorMessage("An error occurred while setting up the audio stream.");
-    } else if (error.name === "AbortError") {
-      setErrorMessage(
-        "Microphone access request was aborted. Please try again and make sure to grant permission when prompted."
-      );
-    } else if (
-      error.name === "NotAllowedError" ||
-      error.name === "PermissionDeniedError"
-    ) {
-      setErrorMessage(
-        "Microphone access was denied. Please check your browser settings and grant permission."
-      );
-    } else if (
-      error.name === "NotFoundError" ||
-      error.name === "DevicesNotFoundError"
-    ) {
-      setErrorMessage(
-        "No microphone found. Please check your microphone connection."
-      );
-    } else if (
-      error.name === "NotReadableError" ||
-      error.name === "TrackStartError"
-    ) {
-      setErrorMessage(
-        "Unable to access your microphone. It may be in use by another application."
-      );
-    } else {
-      setErrorMessage("Error accessing microphone: " + error.message);
-    }
+    setErrorMessage("Error accessing microphone");
     setIsPlaying(false);
     setMicrophoneStatus("error");
   };
@@ -284,26 +284,44 @@ export default function DesktopVoice() {
 
   const tempDimensions = "2D";
 
+  const isLastMessageFromAssistant =
+    conversationHistory.length > 0 &&
+    conversationHistory[conversationHistory.length - 1].role === "assistant";
+
   return (
     <div className="h-full p-6 flex flex-col justify-center items-center">
-      <div className="mb-8">
+      <div
+        className={`mb-8 ${productRecommendations.length > 0 ? "mb-2" : ""}`}
+      >
         {personalitySettings.visualizer === "Orb" ? (
           <VoiceOrb
-            width={150}
-            height={150}
+            width={productRecommendations.length > 0 ? 120 : 150}
+            height={productRecommendations.length > 0 ? 120 : 150}
             color={personalitySettings?.primaryColor}
           />
         ) : tempDimensions === "2D" ? (
-          <div className="w-[150px] h-[150px] relative mb-4">
+          <div
+            className={`relative mb-4 ${
+              productRecommendations.length > 0
+                ? "w-[120px] h-[120px]"
+                : "w-[150px] h-[150px]"
+            }`}
+          >
             <IconSVG
               name="mobile-orb-bg"
               color={personalitySettings?.primaryColor}
-              className="w-[150px] h-[150px]"
+              className="w-full h-full"
             />
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="rounded-full bg-white p-1 w-[130px] h-[130px] blur-sm"></div>
+              <div
+                className={`rounded-full bg-white p-1 blur-sm ${
+                  productRecommendations.length > 0
+                    ? "w-[100px] h-[100px]"
+                    : "w-[130px] h-[130px]"
+                }`}
+              ></div>
             </div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150px] h-[150px]">
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full">
               <Image
                 src={
                   characters.find(
@@ -312,14 +330,19 @@ export default function DesktopVoice() {
                 }
                 alt="Avatar"
                 className="rounded-full"
-                width={150}
-                height={150}
+                width={productRecommendations.length > 0 ? 120 : 150}
+                height={productRecommendations.length > 0 ? 120 : 150}
                 objectFit="contain"
               />
             </div>
           </div>
         ) : (
-          <div style={{ width: 250, height: 170 }}>
+          <div
+            style={{
+              width: productRecommendations.length > 0 ? 200 : 250,
+              height: productRecommendations.length > 0 ? 140 : 170,
+            }}
+          >
             <Canvas shadows>
               <color attach="background" args={["#fff"]} />
               <PerspectiveCamera
@@ -342,24 +365,66 @@ export default function DesktopVoice() {
           </div>
         )}
       </div>
-      <button
-        onClick={() => {
-          if (isPlaying) {
+      <AnimatePresence>
+        {isLastMessageFromAssistant && productRecommendations.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full max-w-[300px] mb-2 overflow-hidden"
+          >
+            <div className="flex space-x-2 pb-2 overflow-x-auto">
+              {productRecommendations.map((product, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className="flex-shrink-0 w-[120px]"
+                >
+                  <div
+                    className="flex flex-col items-center border border-gray-200 rounded-[10px] w-full cursour-pointer"
+                    onClick={() => {
+                      setCurrentUrl(product.productUrl);
+                    }}
+                  >
+                    <div
+                      className="w-full h-[50px]"
+                      style={{
+                        background: `url(${product.image})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    ></div>
+                    <div className="w-full text-[10px] h-[26px] p-1 overflow-hidden">
+                      <p className="truncate">{product.name}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {isPlaying ? (
+        <VoiceEnd
+          color={"#FF3B30"}
+          disable={isLoading}
+          onClick={() => {
             stopAudio(true);
-          } else {
+          }}
+        />
+      ) : (
+        <VoiceStart
+          color={personalitySettings?.primaryColor}
+          disable={isLoading}
+          onClick={() => {
             startAudio();
-          }
-        }}
-        className="flex flex-col items-center mt-4"
-        disabled={isLoading}
-      >
-        <span
-          className="text-sm font-medium"
-          style={{ color: personalitySettings?.primaryColor }}
-        >
-          {isPlaying ? "Stop" : "Start"}
-        </span>
-      </button>
+          }}
+        />
+      )}
     </div>
   );
 }

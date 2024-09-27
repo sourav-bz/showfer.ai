@@ -129,12 +129,12 @@ def save_scraped_content(domain, url, content, local_dir):
         f.write(content)
     
     # Save the content to Supabase
-    try:
-        with open(local_file_path, 'rb') as f:
-            supabase.storage.from_("showfer").upload(supabase_file_path, f)
-        print(f"Successfully saved {supabase_file_path} to Supabase")
-    except Exception as e:
-        print(f"Error saving {supabase_file_path} to Supabase: {str(e)}")
+    # try:
+    #     with open(local_file_path, 'rb') as f:
+    #         supabase.storage.from_("showfer").upload(supabase_file_path, f)
+    #     print(f"Successfully saved {supabase_file_path} to Supabase")
+    # except Exception as e:
+    #     print(f"Error saving {supabase_file_path} to Supabase: {str(e)}")
     
 def create_openai_assistant(name, domain_name, local_dir):
     print(f"Creating OpenAI assistant for {domain_name}")
@@ -186,16 +186,16 @@ def scrape_domain(name, website_url, links_to_scrape, settings_id):
     global supabase
     supabase = create_client(url, key)
     
-    # Delete the existing folder before starting scraping
-    formatted_domain = urlparse(website_url).netloc.replace('.', '-')
-    try:
-        folder_contents = supabase.storage.from_("showfer").list(formatted_domain)
-        for item in folder_contents:
-            supabase.storage.from_("showfer").remove(f"{formatted_domain}/{item['name']}")
-        print(f"Deleted existing folder: {formatted_domain}")
-    except Exception as e:
-        if "The resource was not found" not in str(e):
-            print(f"Error deleting folder {formatted_domain}: {str(e)}")
+    # # Delete the existing folder before starting scraping
+    # formatted_domain = urlparse(website_url).netloc.replace('.', '-')
+    # try:
+    #     folder_contents = supabase.storage.from_("showfer").list(formatted_domain)
+    #     for item in folder_contents:
+    #         supabase.storage.from_("showfer").remove(f"{formatted_domain}/{item['name']}")
+    #     print(f"Deleted existing folder: {formatted_domain}")
+    # except Exception as e:
+    #     if "The resource was not found" not in str(e):
+    #         print(f"Error deleting folder {formatted_domain}: {str(e)}")
 
     supabase.table('assistant_settings').update({"overall_status": "fetching_info"}).eq("id", settings_id).execute()
     # Create a temporary directory to store scraped content
@@ -218,6 +218,13 @@ def scrape_domain(name, website_url, links_to_scrape, settings_id):
                     supabase.table('assistant_settings').update({"overall_status": "structuring_info"}).eq("id", settings_id).execute()
 
         print("Scraping completed.")
+        
+        # Save links_to_scrape as a separate file
+        links_filename = f"{urlparse(domain).netloc.replace('.', '-')}-links.txt"
+        links_file_path = os.path.join(temp_dir, links_filename)
+        with open(links_file_path, 'w', encoding='utf-8') as f:
+            for link in links_to_scrape:
+                f.write(f"{link}\n")
         
         supabase.table('assistant_settings').update({"overall_status": "creating_assistant"}).eq("id", settings_id).execute()
         

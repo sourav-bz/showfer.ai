@@ -255,7 +255,7 @@ export default function BotTraining() {
       };
 
       let response;
-      if (checkResponse.data.assistant) {
+      if (false) {
         // Assistant exists, update it
         response = await axios.put(`/api/assistant-settings`, {
           ...assistantSettings,
@@ -411,7 +411,7 @@ export default function BotTraining() {
         {links.length > 0 && (
           <div className="w-1/3 p-8 flex items-center justify-center">
             <div className="w-[450px]">
-              {selectedLinks.size > 10 && (
+              {/* {selectedLinks.size > 10 && (
                 <div className="text-center text-sm text-gray-500 flex items-center mb-[40px]">
                   <Image
                     src="/icons/info-circle.svg"
@@ -424,7 +424,7 @@ export default function BotTraining() {
                     You can train up to 10 links for free.
                   </div>
                 </div>
-              )}
+              )} */}
               <h2 className="text-[16px] font-medium mb-[15px] flex items-center">
                 <Image
                   src={
@@ -507,9 +507,8 @@ export default function BotTraining() {
             }`}
             onClick={handleStartTraining}
             disabled={
-              isTrainingDialogOpen ||
-              selectedLinks.size === 0 ||
-              selectedLinks.size > 10
+              isTrainingDialogOpen || selectedLinks.size === 0
+              // || selectedLinks.size > 10
             }
           >
             {isTrainingDialogOpen ? (

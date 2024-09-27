@@ -8,9 +8,10 @@ import { usePlaygroundStore } from "@/app/dashboard/_store/PlaygroundStore";
 import Bot from "@/app/_ui/ShowferWidget/Bot";
 import toast, { Toaster } from "react-hot-toast"; // Change this line
 import { useBotStore } from "@/app/_ui/ShowferWidget/_store/botStore";
+import { motion, AnimatePresence } from "framer-motion";
+import IconSVG from "@/app/_ui/IconSvg";
 
 export default function Playground() {
-  const [url, setUrl] = useState<string>("https://mlada.in");
   const [htmlContent, setHtmlContent] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,9 +22,9 @@ export default function Playground() {
   const { assistantId, setAssistantId } = usePlaygroundStore();
   const [isFullScreen, setIsFullScreen] = useState(false);
   const fullScreenContainerRef = useRef<HTMLDivElement>(null);
-  const [currentUrl, setCurrentUrl] = useState<string>("https://mlada.in");
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  const { setIsMobile } = useBotStore();
+  const { setIsMobile, setUrl, currentUrl, setCurrentUrl } = useBotStore();
 
   useEffect(() => {
     setIsMobile(view === "Mobile");
@@ -59,6 +60,7 @@ export default function Playground() {
         if (data) {
           setUrl(data.website_url || "");
           setAssistantId(data.openai_assistant_id || "");
+          setCurrentUrl(data.website_url || "");
         } else {
           console.error("No assistant settings found");
         }
@@ -77,6 +79,7 @@ export default function Playground() {
   }, [assistantId, currentUrl]);
 
   const toggleFullScreen = useCallback(() => {
+    setIsAnimating(true);
     if (!document.fullscreenElement) {
       fullScreenContainerRef.current?.requestFullscreen();
     } else {
@@ -87,6 +90,7 @@ export default function Playground() {
   useEffect(() => {
     const handleFullScreenChange = () => {
       setIsFullScreen(!!document.fullscreenElement);
+      setIsAnimating(false);
     };
 
     document.addEventListener("fullscreenchange", handleFullScreenChange);
@@ -115,7 +119,10 @@ export default function Playground() {
               height: 100%;
               margin: 0;
               padding: 0;
-              overflow: auto;
+            }
+            body {
+              overflow-y: auto;
+              -webkit-overflow-scrolling: touch;
             }
           </style>
           </head>`
@@ -188,17 +195,22 @@ export default function Playground() {
           </h1>
 
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="flex items-center bg-[#F0F2F7] rounded-[15px] p-[5px] h-[50px]">
+            <div className="flex items-center bg-[#F0F2F7] rounded-[7px] p-[5px] h-[50px]">
               {["Desktop", "Mobile"].map((tab) => (
                 <div key={tab} className="flex-1">
                   <button
-                    className={`w-full py-[8px] px-[20px] rounded-[15px] ${
+                    className={`w-full flex items-center justify-center py-[8px] px-[20px] rounded-[7px] ${
                       view === tab
-                        ? "bg-white text-[#6D67E4]"
+                        ? "bg-[#8F93A5] text-white"
                         : "text-[#8F93A5]"
                     }`}
                     onClick={() => setView(tab)}
                   >
+                    <IconSVG
+                      name={tab === "Desktop" ? "desktop" : "mobile"}
+                      color={view === tab ? "white" : "#8F93A5"}
+                      className="mr-2"
+                    />
                     {tab}
                   </button>
                 </div>
@@ -224,59 +236,89 @@ export default function Playground() {
           ) : error ? (
             <div className="text-red-500 p-4 text-center">{error}</div>
           ) : (
-            <div
-              ref={fullScreenContainerRef}
-              className={`border-[10px] border-[#E3E4EC] rounded-[10px] ${
-                view === "Mobile" ? "w-[305px]" : "w-[1248px]"
-              } h-[calc(100vh-350px)] ${
-                isFullScreen ? "fixed inset-0 z-50 w-full h-full border-0" : ""
-              } relative`}
-            >
-              {view === "Desktop" && (
-                <button
-                  onClick={toggleFullScreen}
-                  className="absolute top-2 right-2 z-10 bg-white p-2 rounded-full shadow-md"
-                >
-                  {isFullScreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                </button>
-              )}
-              <div className="w-full h-full overflow-auto">
-                {view === "Desktop" ? (
-                  <iframe
-                    ref={iframeRef}
-                    srcDoc={htmlContent}
-                    className="w-full h-full border-0"
-                    sandbox="allow-same-origin"
-                  />
-                ) : (
-                  <iframe
-                    ref={iframeRef}
-                    srcDoc={htmlContent}
-                    className="w-full h-[calc(100%)]"
-                    sandbox="allow-same-origin"
-                  />
+            <AnimatePresence>
+              <motion.div
+                ref={fullScreenContainerRef}
+                className={`border-[10px] border-[#E3E4EC] rounded-[10px] ${
+                  view === "Mobile" ? "w-[305px]" : "w-[1248px]"
+                } h-[calc(100vh-350px)] relative overflow-hidden`}
+                initial={false}
+                animate={{
+                  position: isFullScreen ? "fixed" : "relative",
+                  inset: isFullScreen ? 0 : "auto",
+                  width: isFullScreen
+                    ? "100%"
+                    : view === "Mobile"
+                    ? "305px"
+                    : "1248px",
+                  height: isFullScreen ? "100%" : "calc(100vh-350px)",
+                  borderWidth: isFullScreen ? 0 : 10,
+                  zIndex: isFullScreen ? 50 : "auto",
+                }}
+                transition={{ duration: 0.3 }}
+              >
+                {view === "Desktop" && (
+                  <button
+                    onClick={toggleFullScreen}
+                    className="absolute top-2 right-2 z-10 flex items-center justify-center shadow-md p-1 rounded-[5px] bg-[#E3E4EC]"
+                  >
+                    {isFullScreen ? (
+                      <Image
+                        src="/icons/fullscreen-exit.svg"
+                        alt="fullscreen-exit"
+                        width={24}
+                        height={24}
+                      />
+                    ) : (
+                      <Image
+                        src="/icons/fullscreen-enter.svg"
+                        alt="fullscreen-enter"
+                        width={24}
+                        height={24}
+                      />
+                    )}
+                  </button>
                 )}
-              </div>
-              <div className="absolute bottom-0 right-0 h-full w-full">
-                <Bot />
-              </div>
-              <Toaster
-                containerStyle={{
-                  zIndex: 10000, // Increase this value to ensure it's above everything
-                  position: "absolute", // Change to fixed positioning
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 10,
-                  pointerEvents: "none",
-                }}
-                toastOptions={{
-                  style: {
-                    pointerEvents: "auto", // Make the toast itself clickable
-                  },
-                }}
-              />
-            </div>
+                <div className="w-full h-full">
+                  {view === "Desktop" ? (
+                    <iframe
+                      ref={iframeRef}
+                      srcDoc={htmlContent}
+                      className="w-full h-full border-0"
+                      sandbox="allow-same-origin"
+                      style={{ width: "100%", height: "100%", border: "none" }}
+                    />
+                  ) : (
+                    <iframe
+                      ref={iframeRef}
+                      srcDoc={htmlContent}
+                      className="w-full h-full"
+                      sandbox="allow-same-origin"
+                      style={{ width: "100%", height: "100%", border: "none" }}
+                    />
+                  )}
+                </div>
+                <div className="absolute bottom-2 right-2 h-full w-full">
+                  <Bot />
+                </div>
+                <Toaster
+                  containerStyle={{
+                    zIndex: 10000, // Increase this value to ensure it's above everything
+                    position: "absolute", // Change to fixed positioning
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 10,
+                    pointerEvents: "none",
+                  }}
+                  toastOptions={{
+                    style: {
+                      pointerEvents: "auto", // Make the toast itself clickable
+                    },
+                  }}
+                />
+              </motion.div>
+            </AnimatePresence>
           )}
         </div>
       </div>

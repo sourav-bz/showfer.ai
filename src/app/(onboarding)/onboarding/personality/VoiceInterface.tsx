@@ -195,19 +195,38 @@ export default function VoiceInterface({ mobile }: { mobile: boolean }) {
         </div>
       )}
 
-      <div className="bg-[#F0F2F7] w-[220px] px-[4px] py-[4px] text-xs font-light rounded-lg text-center mb-4">
+      {/* <div className="bg-[#F0F2F7] w-[220px] px-[4px] py-[4px] text-xs font-light rounded-lg text-center mb-4">
         Hi, how can i help you?
-      </div>
+      </div> */}
 
       {selectedTab === "Personality" ? (
-        <button>
-          <IconSVG
-            name="mic"
-            color={character.primaryColor}
-            className={`${
-              isRecording ? "animate-pulse " : ""
-            } transition-all duration-300 w-12 h-12`}
-          />
+        <button
+          className="flex items-center justify-center cursor-pointer bg-white rounded-full p-[5px]"
+          style={{
+            boxShadow: `0px 0px 9px 0px rgba(31, 28, 70, 0.13)`,
+          }}
+        >
+          <div
+            className="p-1 rounded-full"
+            style={{
+              backgroundColor: `rgba(${parseInt(
+                character.primaryColor.slice(1, 3),
+                16
+              )}, ${parseInt(
+                character.primaryColor.slice(3, 5),
+                16
+              )}, ${parseInt(character.primaryColor.slice(5, 7), 16)}, 0.3)`,
+            }}
+          >
+            <IconSVG name="call" color={character.primaryColor} />
+          </div>
+
+          <div
+            className="ml-2 text-sm font-medium mr-1"
+            style={{ color: character.primaryColor }}
+          >
+            Start
+          </div>
         </button>
       ) : (
         <div

@@ -2,9 +2,22 @@ import { create } from "zustand";
 import { AudioManager } from "../_utils/AudioManager";
 import { WebSocketManager } from "../_utils/WebSocketManager";
 
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface ProductRecommendation {
+  name: string;
+  image: string;
+  productUrl: string;
+}
+
 interface BotState {
   isMobile: boolean;
   isOpen: boolean;
+  url: string;
+  currentUrl: string;
   isChatMode: boolean;
   userId: string | null;
   personalitySettings: any | null;
@@ -18,6 +31,10 @@ interface BotState {
   audioManager: AudioManager;
   webSocketManager: WebSocketManager;
   talkingState: "user" | "assistant" | "neutral";
+  conversationHistory: Message[];
+  productRecommendations: ProductRecommendation[];
+  setUrl: (url: string) => void;
+  setCurrentUrl: (url: string) => void;
   setTalkingState: (state: "user" | "assistant" | "neutral") => void;
   setIsMobile: (isMobile?: boolean) => void;
   setIsOpen: (isOpen: boolean) => void;
@@ -31,11 +48,35 @@ interface BotState {
   setStreamingResponse: (streamingResponse: string) => void;
   setCurrentSentence: (currentSentence: string) => void;
   setConnected: (connected: boolean) => void;
+  setProductRecommendations: (productRecommendations: any[]) => void;
   toggleChatWindow: () => void;
   toggleMedium: () => void;
-  startListening: () => void;
-  stopListening: () => void;
-  getAIResponse: (text: string) => Promise<void>;
+  addToConversation: (role: "user" | "assistant", content: string) => void;
+  addProductRecommendation: (name: string, productUrl: string) => void;
+}
+
+async function getPreviewImage(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    let previewImage = doc.querySelector('meta[property="og:image"]');
+    if (previewImage) {
+      return previewImage.getAttribute("content");
+    }
+
+    previewImage = doc.querySelector('meta[name="twitter:image"]');
+    if (previewImage) {
+      return previewImage.getAttribute("content");
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error fetching preview image:", error);
+    return null;
+  }
 }
 
 export const useBotStore = create<BotState>((set, get) => ({
@@ -45,6 +86,8 @@ export const useBotStore = create<BotState>((set, get) => ({
   userId: null,
   personalitySettings: null,
   assistantId: null,
+  url: "",
+  currentUrl: "",
   transcript: "",
   isListening: false,
   aiResponse: [],
@@ -54,6 +97,10 @@ export const useBotStore = create<BotState>((set, get) => ({
   talkingState: "neutral",
   audioManager: new AudioManager(),
   webSocketManager: new WebSocketManager(),
+  conversationHistory: [],
+  productRecommendations: [],
+  setUrl: (url: string) => set({ url }),
+  setCurrentUrl: (currentUrl: string) => set({ currentUrl }),
   setTalkingState: (state: "user" | "assistant" | "neutral") =>
     set({ talkingState: state }),
   setIsMobile: (isMobile?: boolean) => {
@@ -75,49 +122,53 @@ export const useBotStore = create<BotState>((set, get) => ({
   setStreamingResponse: (streamingResponse) => set({ streamingResponse }),
   setCurrentSentence: (currentSentence) => set({ currentSentence }),
   setConnected: (connected) => set({ connected }),
+  setProductRecommendations: (productRecommendations) =>
+    set({ productRecommendations }),
   toggleChatWindow: () => set((state) => ({ isOpen: !state.isOpen })),
   toggleMedium: () => set((state) => ({ isChatMode: !state.isChatMode })),
-  startListening: async () => {
-    const { audioManager, setIsListening, setTranscript } = get();
-    try {
-      await audioManager.startListening((newTranscript) => {
-        console.log("Received new transcript in botStore:", newTranscript);
-        setTranscript((prevTranscript) => {
-          // If the new transcript starts with the previous one, replace it
-          if (newTranscript.startsWith(prevTranscript.trim())) {
-            return newTranscript;
-          }
-          // Otherwise, append it
-          return prevTranscript + " " + newTranscript;
-        });
-      });
-      setIsListening(true);
-    } catch (error) {
-      console.error("Error starting listening:", error);
-      setIsListening(false);
+  addToConversation: async (role: "user" | "assistant", content: string) => {
+    set((state) => ({
+      conversationHistory: [...state.conversationHistory, { role, content }],
+    }));
+
+    // Reset product recommendations when a new conversation starts
+    set({ productRecommendations: [] });
+
+    if (role === "assistant") {
+      const urlRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+      const currentUrl = get().url;
+
+      let match;
+      while ((match = urlRegex.exec(content)) !== null) {
+        const name = match[1];
+        let productUrl = match[2];
+
+        // Add prefix to URLs that don't start with "https://" or a domain name
+        if (
+          !productUrl.startsWith("https://") &&
+          !productUrl.match(/^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/)
+        ) {
+          const urlObject = new URL(currentUrl);
+          productUrl = `${urlObject.origin}${
+            productUrl.startsWith("/") ? "" : "/"
+          }${productUrl}`;
+        }
+
+        await get().addProductRecommendation(name, productUrl);
+      }
     }
   },
-
-  stopListening: () => {
-    const { audioManager, setIsListening } = get();
-    audioManager.stopListening();
-    setIsListening(false);
-  },
-
-  getAIResponse: async (text: string) => {
-    const {
-      webSocketManager,
-      setStreamingResponse,
-      setAiResponse,
-      setCurrentSentence,
-    } = get();
-    setStreamingResponse("");
-    setAiResponse([]);
-
-    const sentences = await webSocketManager.getAIResponse(text);
-    setAiResponse(sentences);
-
-    webSocketManager.requestNextAudio();
+  addProductRecommendation: async (name: string, productUrl: string) => {
+    let finalImage = "";
+    if (!finalImage) {
+      finalImage = (await getPreviewImage(productUrl)) || "";
+    }
+    set((state) => ({
+      productRecommendations: [
+        ...state.productRecommendations,
+        { name, image: finalImage, productUrl },
+      ],
+    }));
   },
 }));
 
