@@ -10,7 +10,7 @@ const inter = Poppins({
 
 export const metadata: Metadata = {
   title: "Showfer.ai - AI mascot for your brand",
-  description: "Give a personality to your brand with Showfer.ai",
+  description: "Give a personality to your brand website with Showfer.ai",
   icons: {
     icon: "/icon.ico",
   },
