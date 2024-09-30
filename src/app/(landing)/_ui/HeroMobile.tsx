@@ -5,9 +5,14 @@ import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import PersonalityName from "./PersonalityName";
 import { PopupButton } from "react-calendly";
+import Lottie from "lottie-react";
+import loaderAnimation from "../../../../public/loader/loader-logo.json";
+import { useLandingStore } from "../_store/landingStore";
 
 export default function HeroMobile() {
   const [currentImage, setCurrentImage] = useState(0);
+  const { isLoaded, setIsLoaded } = useLandingStore();
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const images = [
     "/hero/personality-1-friendly.svg",
     "/hero/personality-2-trustworthy.svg",
@@ -18,18 +23,67 @@ export default function HeroMobile() {
   ];
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImage((prevImage) => (prevImage + 1) % 6);
-    }, 3500); // Change image every 3.5 seconds
+    const preloadImages = async () => {
+      let loadedCount = 0;
+      const imagePromises = images.map((src, index) => {
+        return new Promise<void>((resolve, reject) => {
+          const img = new window.Image(); // Use window.Image instead of Image
+          img.src = src;
+          img.onload = () => {
+            loadedCount++;
+            setLoadingProgress((loadedCount / images.length) * 100);
+            // console.log(
+            //   `Image ${index + 1} loaded. Progress: ${loadedCount}/${
+            //     images.length
+            //   }`
+            // );
+            resolve();
+          };
+          img.onerror = (error) => {
+            // console.error(`Failed to load image ${index + 1}:`, src, error);
+            reject(error);
+          };
+        });
+      });
 
-    return () => clearInterval(interval);
+      try {
+        await Promise.all(imagePromises);
+        // console.log("All images loaded successfully");
+        setIsLoaded(true);
+      } catch (error) {
+        // console.error("Failed to load all images:", error);
+      }
+    };
+
+    preloadImages();
   }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      const interval = setInterval(() => {
+        setCurrentImage((prevImage) => (prevImage + 1) % images.length);
+      }, 3500);
+
+      return () => clearInterval(interval);
+    }
+  }, [isLoaded, images.length]);
 
   const imageVariants = {
     hidden: { opacity: 0, x: "100%", scale: 0.5 },
     visible: { opacity: 1, x: 0, scale: 1 },
     exit: { opacity: 0, x: "100%", scale: 0.5 },
   };
+
+  if (!isLoaded) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="w-[250px] h-[250px]">
+          <Lottie animationData={loaderAnimation} loop={true} />
+        </div>
+        <div className="text-gray-400">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -97,11 +151,11 @@ export default function HeroMobile() {
       <div className="flex items-center justify-center w-full bg-white rounded-lg mt-4 p-4">
         <a
           href="/signup"
-          className="px-5 py-2.5 bg-[#6d67e4] rounded-md justify-center items-center gap-2.5 flex text-white mr-4"
+          className="py-2.5 bg-[#6d67e4] rounded-md justify-center items-center gap-2.5 flex flex-1 text-white mr-4"
         >
           Early access
         </a>
-        <a className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex text-[#6d67e4]">
+        <a className="py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex flex-1 text-[#6d67e4]">
           <PopupButton
             url="https://calendly.com/showfer-support/demo"
             text="Schedule a demo"

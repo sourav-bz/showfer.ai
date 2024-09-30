@@ -11,7 +11,7 @@ export const checkUserStatus = async (email: string) => {
     }
 
     const data = await response.json();
-    console.log("User status:", data);
+    // console.log("User status:", data);
 
     return data;
   } catch (error) {

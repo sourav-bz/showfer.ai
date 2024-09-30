@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import toast, { Toaster } from "react-hot-toast";
 import { checkUserStatus } from "./_utils/checkUserStatus";
+import PuffLoader from "react-spinners/PuffLoader";
 
 export default function Signup() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function Signup() {
         table: "users",
       },
       (payload) => {
-        console.log("payload", payload);
+        //console.log("payload", payload);
         setEarlyAccessApproved(payload.new.early_access_approved);
       }
     )
@@ -40,11 +41,11 @@ export default function Signup() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      console.log("Session:", session);
+      //console.log("Session:", session);
       if (session) {
         setIsAuthenticated(true);
         const userStatus = await checkUserStatus(email);
-        if (userStatus.exists) {
+        if (userStatus?.exists) {
           setEarlyAccessApproved(userStatus.early_access_approved);
         }
       }
@@ -105,7 +106,7 @@ export default function Signup() {
     e.preventDefault();
     setIsLoading(true);
     const userStatus = await checkUserStatus(email);
-    if (userStatus.exists) {
+    if (userStatus?.exists) {
       toast("User already exists, please sign in", {
         icon: "👋",
         style: {
@@ -143,9 +144,9 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex h-full bg-white rounded-lg">
+    <div className="flex h-full bg-white rounded-lg justify-center">
       <Toaster position="top-right" />
-      <div className="hidden lg:block relative w-0 flex-1">
+      {/* <div className="hidden lg:block relative w-0 flex-1">
         <div className="absolute inset-0">
           <div className="absolute top-0 right-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[#E3E4EC] to-transparent"></div>
           <div className="max-w-2xl px-[70px] h-full flex flex-col justify-center">
@@ -172,7 +173,7 @@ export default function Signup() {
             </ul>
           </div>
         </div>
-      </div>
+      </div> */}
       <div className="flex-1 flex flex-col justify-center px-4 items-center sm:px-6 lg:flex-none lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-sm lg:w-96">
           <div className="mb-8">
@@ -258,7 +259,7 @@ export default function Signup() {
               <div className="flex flex-col items-center mb-[40px] p-[30px] rounded-[20px] border border-[#E3E4EC] shadow-lg">
                 <div className="mb-[30px]">
                   {/* Replace with your loader component */}
-                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
+                  <PuffLoader color="#6D67E4" size={50} />
                 </div>
                 <div className="text-[16px] font-[400] text-gray-600 mb-[10px]">
                   We&apos;ve sent a sign-up link to

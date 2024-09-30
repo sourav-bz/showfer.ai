@@ -28,7 +28,7 @@ export default function Signin() {
         table: "users",
       },
       (payload) => {
-        console.log("payload", payload);
+        //console.log("payload", payload);
         setEarlyAccessApproved(payload.new.early_access_approved);
       }
     )
@@ -39,7 +39,7 @@ export default function Signin() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      console.log("Session:", session);
+      //console.log("Session:", session);
       if (session) {
         setIsAuthenticated(true);
       }
@@ -113,9 +113,9 @@ export default function Signin() {
   };
 
   return (
-    <div className="flex h-full bg-white rounded-lg">
+    <div className="flex h-full bg-white rounded-lg justify-center">
       <Toaster position="top-right" />
-      <div className="hidden lg:block relative w-0 flex-1">
+      {/* <div className="hidden lg:block relative w-0 flex-1">
         <div className="absolute inset-0">
           <div className="absolute top-0 right-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[#E3E4EC] to-transparent"></div>
           <div className="max-w-2xl px-[70px] h-full flex flex-col justify-center">
@@ -142,7 +142,7 @@ export default function Signin() {
             </ul>
           </div>
         </div>
-      </div>
+      </div> */}
       <div className="flex-1 flex flex-col justify-center px-4 items-center sm:px-6 lg:flex-none lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-sm lg:w-96">
           <div className="mb-8">

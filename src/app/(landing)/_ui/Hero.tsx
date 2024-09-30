@@ -6,9 +6,14 @@ import PersonalityName from "./PersonalityName";
 import { IoCheckbox } from "react-icons/io5";
 import { AnimatePresence, motion } from "framer-motion";
 import { PopupButton } from "react-calendly";
+import Lottie from "lottie-react";
+import loaderAnimation from "../../../../public/loader/loader-logo.json";
+import { useLandingStore } from "../_store/landingStore";
 
 const Hero: React.FC = () => {
   const [currentImage, setCurrentImage] = useState(0);
+  const { isLoaded, setIsLoaded } = useLandingStore();
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const images = [
     "/hero/personality-1-friendly.svg",
     "/hero/personality-2-trustworthy.svg",
@@ -19,18 +24,67 @@ const Hero: React.FC = () => {
   ];
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImage((prevImage) => (prevImage + 1) % 6);
-    }, 3500);
+    const preloadImages = async () => {
+      let loadedCount = 0;
+      const imagePromises = images.map((src, index) => {
+        return new Promise<void>((resolve, reject) => {
+          const img = new window.Image();
+          img.src = src;
+          img.onload = () => {
+            loadedCount++;
+            setLoadingProgress((loadedCount / images.length) * 100);
+            // console.log(
+            //   `Image ${index + 1} loaded. Progress: ${loadedCount}/${
+            //     images.length
+            //   }`
+            // );
+            resolve();
+          };
+          img.onerror = (error) => {
+            // console.error(`Failed to load image ${index + 1}:`, src, error);
+            // reject(error);
+          };
+        });
+      });
 
-    return () => clearInterval(interval);
+      try {
+        await Promise.all(imagePromises);
+        // console.log("All images loaded successfully");
+        setIsLoaded(true);
+      } catch (error) {
+        // console.error("Failed to load all images:", error);
+      }
+    };
+
+    preloadImages();
   }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      const interval = setInterval(() => {
+        setCurrentImage((prevImage) => (prevImage + 1) % images.length);
+      }, 3500);
+
+      return () => clearInterval(interval);
+    }
+  }, [isLoaded, images.length]);
 
   const imageVariants = {
     hidden: { opacity: 0, x: "100%", scale: 0.5 },
     visible: { opacity: 1, x: 0, scale: 1 },
     exit: { opacity: 0, x: "100%", scale: 0.5 },
   };
+
+  if (!isLoaded) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen w-screen">
+        <div className="w-[400px] h-[400px]">
+          <Lottie animationData={loaderAnimation} loop={true} />
+        </div>
+        <div className="text-gray-400">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white text-gray-900 rounded-lg h-full">
