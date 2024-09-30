@@ -42,6 +42,7 @@
     "react-range": "^1.10.0",
     "react-spinners": "^0.14.1",
     "react-swipeable": "^7.0.1",
+    "react-syntax-highlighter": "^15.5.0",
     "styled-components": "^6.1.13",
     "tesseract.js": "^5.1.1",
     "zustand": "^4.5.5"

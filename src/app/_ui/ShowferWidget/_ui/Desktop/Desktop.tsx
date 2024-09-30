@@ -12,11 +12,7 @@ export default function Desktop() {
 
   return (
     <div className="w-[280px] h-[400px] mb-2 rounded-[20px] bg-white shadow-md overflow-hidden flex flex-col">
-      <DesktopHeader
-        personalitySettings={personalitySettings}
-        isChatMode={isChatMode}
-        toggleMode={() => setIsChatMode(!isChatMode)}
-      />
+      <DesktopHeader />
       {isChatMode ? <DesktopText /> : <DesktopVoice />}
     </div>
   );

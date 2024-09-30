@@ -9,10 +9,10 @@ let mediaStreamSource: MediaStreamAudioSourceNode | null = null;
 let audioWorkletNode: AudioWorkletNode | null = null;
 let webSocket: WebSocket | null = null;
 
-export const startAudio = async () => {
+export const startAudio = async (setIsPlaying, isFirstConnection = true) => {
   const { setErrorMessage, initializeAudioContext, initializeProtobuf } =
     useAudioStore.getState();
-  const { assistantId } = useBotStore.getState();
+  const { assistantId, setThreadId } = useBotStore.getState();
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     setErrorMessage("getUserMedia is not supported in your browser.");
@@ -40,7 +40,7 @@ export const startAudio = async () => {
     mediaStreamSource.connect(audioWorkletNode);
     audioWorkletNode.connect(audioCtx.destination);
 
-    initWebSocket();
+    initWebSocket(setIsPlaying, isFirstConnection);
 
     audioWorkletNode.port.onmessage = (event) => {
       if (!webSocket) return;
@@ -67,7 +67,7 @@ export const startAudio = async () => {
   }
 };
 
-export const stopAudio = () => {
+export const stopAudio = (setIsPlaying) => {
   if (audioWorkletNode) {
     audioWorkletNode.disconnect();
     audioWorkletNode = null;
@@ -84,17 +84,22 @@ export const stopAudio = () => {
   if (webSocket) {
     webSocket.close();
     webSocket = null;
+    setIsPlaying(false);
   }
 };
 
-const initWebSocket = () => {
-  const { addToConversation } = useBotStore.getState();
+let currentTranscript = "";
+let transcriptTimeout: NodeJS.Timeout | null = null;
+
+const initWebSocket = (setIsPlaying, isFirstConnection) => {
+  const { addToConversation, setThreadId, threadId } = useBotStore.getState();
   const { setErrorMessage } = useAudioStore.getState();
 
   webSocket = new WebSocket("ws://localhost:8765");
 
   webSocket.addEventListener("open", () => {
     if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+      setIsPlaying(true);
       const botState = useBotStore.getState();
       const emotion = botState.personalitySettings.emotionConfig
         .filter((emotion) => emotion.level !== "none")
@@ -106,14 +111,17 @@ const initWebSocket = () => {
                 : `${emotion.emotion}:${emotion.level}`
             }`
         ) as EmotionControl[];
-      webSocket.send(
-        JSON.stringify({
-          assistant_id: botState.assistantId,
-          voice_id: botState.personalitySettings.voice.id, // Assuming you store voiceId in your bot state
-          speed: botState.personalitySettings.speed, // Assuming you store speed in your bot state
-          emotion: emotion, // Assuming you store emotions as an array in your bot state
-        })
-      );
+      // Create a new object with only the necessary properties
+      const websocketPayload = {
+        assistant_id: botState.assistantId,
+        voice_id: botState.personalitySettings.voice.id,
+        speed: botState.personalitySettings.speed,
+        emotion: emotion,
+        thread: threadId,
+        first_connection: Boolean(isFirstConnection),
+      };
+
+      webSocket.send(JSON.stringify(websocketPayload));
     }
   });
 
@@ -121,16 +129,17 @@ const initWebSocket = () => {
     if (typeof event.data === "string") {
       try {
         const eventData = JSON.parse(event.data);
-        console.log("eventData", eventData);
         if (eventData?.type === "transcript_and_response") {
           if (eventData?.transcript) {
-            console.log("Transcript:", eventData?.transcript);
-            addToConversation("user", eventData?.transcript);
+            handleTranscript(eventData?.transcript);
           }
           if (eventData?.llm_response) {
             console.log("LLM Response:", eventData?.llm_response);
             addToConversation("assistant", eventData?.llm_response);
+            currentTranscript = "";
           }
+        } else if (eventData?.type === "thread_info") {
+          setThreadId(eventData.thread_id);
         }
       } catch (error) {
         console.error("Error parsing JSON:", error);
@@ -153,6 +162,40 @@ const initWebSocket = () => {
   webSocket.addEventListener("error", () => {
     setErrorMessage("WebSocket error occurred");
   });
+};
+
+const handleTranscript = (transcript: string) => {
+  const { addToConversation } = useBotStore.getState();
+  if (!transcript) return;
+
+  console.log("Received transcript:", transcript);
+
+  // Clear any existing timeout
+  if (transcriptTimeout) {
+    clearTimeout(transcriptTimeout);
+  }
+
+  // If the new transcript is longer and contains the current transcript, update it
+  if (
+    transcript.length > currentTranscript.length &&
+    transcript.includes(currentTranscript)
+  ) {
+    currentTranscript = transcript;
+  } else if (transcript !== currentTranscript) {
+    // If it's a completely new transcript, add the current one to conversation and update
+    if (currentTranscript) {
+      addToConversation("user", currentTranscript);
+    }
+    currentTranscript = transcript;
+  }
+
+  // Set a new timeout to add the transcript after a short delay
+  transcriptTimeout = setTimeout(() => {
+    if (currentTranscript) {
+      addToConversation("user", currentTranscript);
+      currentTranscript = "";
+    }
+  }, 3000); // Adjust this delay as needed
 };
 
 const audioQueue: AudioBuffer[] = [];

@@ -2,18 +2,31 @@ import React from "react";
 import Image from "next/image";
 import IconSVG from "@/app/_ui/IconSvg";
 import { PersonalitySettings } from "../../_types/Widget";
+import { useBotStore } from "../../_store/botStore";
+import { useVoiceLogic } from "../../_store/voiceLogicProvider";
 
-interface DesktopHeaderProps {
-  personalitySettings: PersonalitySettings;
-  isChatMode: boolean;
-  toggleMode: () => void;
-}
+const DesktopHeader = () => {
+  const { personalitySettings, isChatMode, setIsChatMode } = useBotStore();
 
-const DesktopHeader: React.FC<DesktopHeaderProps> = ({
-  personalitySettings,
-  isChatMode,
-  toggleMode,
-}) => {
+  const {
+    isPlaying,
+    isLoading,
+    errorMessage,
+    handleStartAudio,
+    handleStopAudio,
+    isAudioPlaying,
+    controls,
+    animationProps,
+  } = useVoiceLogic();
+
+  const toggleMode = () => {
+    setIsChatMode(!isChatMode);
+    if (isChatMode) {
+      handleStartAudio(false);
+    } else if (!isChatMode && isPlaying) {
+      handleStopAudio();
+    }
+  };
   return (
     <div
       className="bg-[#6D67E4] p-4 flex justify-between items-center"

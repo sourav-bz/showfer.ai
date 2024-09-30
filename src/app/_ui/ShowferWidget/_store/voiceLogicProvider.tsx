@@ -67,10 +67,9 @@ export const VoiceLogicProvider: React.FC = ({ children }) => {
     }
   }, [isAudioPlaying, controls]);
 
-  const handleStartAudio = async () => {
+  const handleStartAudio = async (isFirstConnection) => {
     try {
-      await startAudio();
-      setIsPlaying(true);
+      await startAudio(setIsPlaying, isFirstConnection);
       setErrorMessage("");
     } catch (error) {
       console.error("Error starting audio:", error);
@@ -80,8 +79,7 @@ export const VoiceLogicProvider: React.FC = ({ children }) => {
   };
 
   const handleStopAudio = () => {
-    stopAudio();
-    setIsPlaying(false);
+    stopAudio(setIsPlaying);
   };
 
   const value = {

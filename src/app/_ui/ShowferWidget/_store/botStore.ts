@@ -1,6 +1,4 @@
 import { create } from "zustand";
-import { AudioManager } from "../_utils/AudioManager";
-import { WebSocketManager } from "../_utils/WebSocketManager";
 
 interface Message {
   role: "user" | "assistant";
@@ -29,11 +27,11 @@ interface BotState {
   streamingResponse: string;
   currentSentence: string;
   connected: boolean;
-  audioManager: AudioManager;
-  webSocketManager: WebSocketManager;
+  threadId: string | null;
   talkingState: "user" | "assistant" | "neutral";
   conversationHistory: Message[];
   productRecommendations: ProductRecommendation[];
+  setThreadId: (threadId: string) => void;
   setUrl: (url: string) => void;
   setCurrentUrl: (url: string) => void;
   setTalkingState: (state: "user" | "assistant" | "neutral") => void;
@@ -96,10 +94,10 @@ export const useBotStore = create<BotState>((set, get) => ({
   currentSentence: "",
   connected: false,
   talkingState: "neutral",
-  audioManager: new AudioManager(),
-  webSocketManager: new WebSocketManager(),
   conversationHistory: [],
   productRecommendations: [],
+  threadId: null,
+  setThreadId: (threadId: string) => set({ threadId }),
   setUrl: (url: string) => set({ url }),
   setCurrentUrl: (currentUrl: string) => set({ currentUrl }),
   setTalkingState: (state: "user" | "assistant" | "neutral") =>
@@ -107,9 +105,12 @@ export const useBotStore = create<BotState>((set, get) => ({
   setIsMobile: (isMobile?: boolean) => {
     if (isMobile !== undefined) {
       set({ isMobile });
-    } else {
+    } else if (typeof window !== "undefined") {
       const isMobileByScreenSize = window.innerWidth <= 768; // Adjust this breakpoint as needed
       set({ isMobile: isMobileByScreenSize });
+    } else {
+      // Default to false if window is not available (server-side)
+      set({ isMobile: false });
     }
   },
   setIsOpen: (isOpen) => set({ isOpen }),
@@ -128,8 +129,13 @@ export const useBotStore = create<BotState>((set, get) => ({
   toggleChatWindow: () => set((state) => ({ isOpen: !state.isOpen })),
   toggleMedium: () => set((state) => ({ isChatMode: !state.isChatMode })),
   addToConversation: async (role: "user" | "assistant", content: string) => {
+    const cleanedContent = content.replace(/【\d+:\d+†source】/g, "").trim();
+
     set((state) => ({
-      conversationHistory: [...state.conversationHistory, { role, content }],
+      conversationHistory: [
+        ...state.conversationHistory,
+        { role, content: cleanedContent },
+      ],
     }));
 
     // Reset product recommendations when a new conversation starts
@@ -142,6 +148,7 @@ export const useBotStore = create<BotState>((set, get) => ({
 
       let match;
       while ((match = urlRegex.exec(content)) !== null) {
+        console.log("url found");
         const name = match[1];
         let productUrl = match[2];
 
@@ -160,6 +167,7 @@ export const useBotStore = create<BotState>((set, get) => ({
           name,
           productUrl
         );
+        console.log("productRecommendation", productRecommendation);
         newProductRecommendations.push(productRecommendation);
       }
 
@@ -198,9 +206,9 @@ export const useBotStore = create<BotState>((set, get) => ({
 }));
 
 // Initialize isMobile on store creation
-useBotStore.getState().setIsMobile();
-
-// Add event listener for window resize
 if (typeof window !== "undefined") {
+  useBotStore.getState().setIsMobile();
+
+  // Add event listener for window resize
   window.addEventListener("resize", () => useBotStore.getState().setIsMobile());
 }
