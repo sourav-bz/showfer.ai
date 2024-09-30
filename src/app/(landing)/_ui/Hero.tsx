@@ -5,10 +5,15 @@ import Image from "next/image";
 import PersonalityName from "./PersonalityName";
 import { IoCheckbox } from "react-icons/io5";
 import { AnimatePresence, motion } from "framer-motion";
-import { PopupButton } from "react-calendly";
 import Lottie from "lottie-react";
 import loaderAnimation from "../../../../public/loader/loader-logo.json";
 import { useLandingStore } from "../_store/landingStore";
+import dynamic from "next/dynamic";
+
+const DynamicPopupButton = dynamic(
+  () => import("react-calendly").then((mod) => mod.PopupButton),
+  { ssr: false }
+);
 
 const Hero: React.FC = () => {
   const [currentImage, setCurrentImage] = useState(0);
@@ -22,6 +27,8 @@ const Hero: React.FC = () => {
     "/hero/personality-5-creative.svg",
     "/hero/personality-6-rugged.svg",
   ];
+
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     const preloadImages = async () => {
@@ -60,6 +67,10 @@ const Hero: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (isLoaded) {
       const interval = setInterval(() => {
         setCurrentImage((prevImage) => (prevImage + 1) % images.length);
@@ -78,9 +89,18 @@ const Hero: React.FC = () => {
   if (!isLoaded) {
     return (
       <div className="flex flex-col items-center justify-center h-screen w-screen">
-        <div className="w-[400px] h-[400px]">
-          <Lottie animationData={loaderAnimation} loop={true} />
-        </div>
+        {/* {isMounted && typeof document !== "undefined" && (
+          <div className="w-[400px] h-[400px]">
+            <Lottie animationData={loaderAnimation} loop={true} />
+          </div>
+        )} */}
+        <Image
+          src="./brand-logo/dark.svg"
+          alt="Showfer.ai Logo"
+          width={320}
+          height={50}
+          className="mb-8"
+        />
         <div className="text-gray-400">Loading...</div>
       </div>
     );
@@ -144,11 +164,13 @@ const Hero: React.FC = () => {
                 Early access
               </a>
               <a className="px-5 py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex text-[#6d67e4]">
-                <PopupButton
-                  url="https://calendly.com/showfer-support/demo"
-                  text="Schedule a demo"
-                  rootElement={document.body}
-                />
+                {isMounted && typeof document !== "undefined" && (
+                  <DynamicPopupButton
+                    url="https://calendly.com/showfer-support/demo"
+                    text="Schedule a demo"
+                    rootElement={document.body}
+                  />
+                )}
               </a>
             </div>
           </div>

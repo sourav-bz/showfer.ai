@@ -4,10 +4,15 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import PersonalityName from "./PersonalityName";
-import { PopupButton } from "react-calendly";
+import dynamic from "next/dynamic";
 import Lottie from "lottie-react";
 import loaderAnimation from "../../../../public/loader/loader-logo.json";
 import { useLandingStore } from "../_store/landingStore";
+
+const DynamicPopupButton = dynamic(
+  () => import("react-calendly").then((mod) => mod.PopupButton),
+  { ssr: false }
+);
 
 export default function HeroMobile() {
   const [currentImage, setCurrentImage] = useState(0);
@@ -21,6 +26,8 @@ export default function HeroMobile() {
     "/hero/personality-5-creative.svg",
     "/hero/personality-6-rugged.svg",
   ];
+
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     const preloadImages = async () => {
@@ -68,6 +75,10 @@ export default function HeroMobile() {
     }
   }, [isLoaded, images.length]);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const imageVariants = {
     hidden: { opacity: 0, x: "100%", scale: 0.5 },
     visible: { opacity: 1, x: 0, scale: 1 },
@@ -77,9 +88,18 @@ export default function HeroMobile() {
   if (!isLoaded) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <div className="w-[250px] h-[250px]">
-          <Lottie animationData={loaderAnimation} loop={true} />
-        </div>
+        {/* {isMounted && typeof document !== "undefined" && (
+          <div className="w-[250px] h-[250px]">
+            <Lottie animationData={loaderAnimation} loop={true} />
+          </div>
+        )} */}
+        <Image
+          src="./brand-logo/dark.svg"
+          alt="Showfer.ai Logo"
+          width={220}
+          height={40}
+          className="mb-4"
+        />
         <div className="text-gray-400">Loading...</div>
       </div>
     );
@@ -156,11 +176,13 @@ export default function HeroMobile() {
           Early access
         </a>
         <a className="py-2.5 bg-[#f0f2f7] rounded-md justify-center items-center gap-2.5 flex flex-1 text-[#6d67e4]">
-          <PopupButton
-            url="https://calendly.com/showfer-support/demo"
-            text="Schedule a demo"
-            rootElement={document.body}
-          />
+          {isMounted && typeof document !== "undefined" && (
+            <DynamicPopupButton
+              url="https://calendly.com/showfer-support/demo"
+              text="Schedule a demo"
+              rootElement={document.body}
+            />
+          )}
         </a>
       </div>
     </div>
