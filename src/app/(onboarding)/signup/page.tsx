@@ -126,7 +126,7 @@ export default function Signup() {
           email,
           options: {
             emailRedirectTo: `https://showfer.ai/api/callback?redirectTo=${encodeURIComponent(
-              `https://showfer.ai${window.location.pathname}`
+              `${window.location.pathname}`
             )}`,
             data: { full_name: fullName, website_url: websiteUrl },
           },
