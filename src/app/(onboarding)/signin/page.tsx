@@ -90,7 +90,7 @@ export default function Signin() {
           email,
           options: {
             emailRedirectTo: `https://showfer.ai/api/callback?redirectTo=${encodeURIComponent(
-              window.location.pathname
+              `https://showfer.ai${window.location.pathname}`
             )}`,
           },
         });
