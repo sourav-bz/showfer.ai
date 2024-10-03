@@ -89,9 +89,7 @@ export default function Signin() {
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
-            emailRedirectTo: `${
-              window.location.origin
-            }/api/callback?redirectTo=${encodeURIComponent(
+            emailRedirectTo: `https://showfer.ai/api/callback?redirectTo=${encodeURIComponent(
               window.location.pathname
             )}`,
           },
