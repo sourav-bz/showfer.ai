@@ -38,6 +38,18 @@ export default function PersonalitySettings() {
 
   return (
     <div className="w-[600px]">
+      {/* Name Input */}
+      <div className="mb-[35px] flex items-center">
+        <label className="block mb-2 font-medium mr-4">Character Name</label>
+        <input
+          type="text"
+          value={character.name}
+          onChange={(e) => setCharacter({ ...character, name: e.target.value })}
+          className="ml-auto w-[200px] rounded-[15px] bg-[#F0F2F7] py-[12px] px-[12px] text-sm text-black"
+          placeholder="Enter character name"
+        />
+      </div>
+
       <div className="mb-[35px] flex items-center">
         <label className="block mb-2 font-medium mr-4">Choose Character</label>
         <Menu
@@ -61,7 +73,7 @@ export default function PersonalitySettings() {
             />
           </MenuButton>
 
-          <MenuItems className="absolute left-0 z-20 mt-2 w-[200px] origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+          <MenuItems className="absolute left-0 z-20 mt-2 w-[200px] max-h-[300px] overflow-y-auto origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
             {characters.map((character) => (
               <MenuItem key={character.id}>
                 {({ active }) => (

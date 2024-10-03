@@ -1,6 +1,6 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
-export const fetchUserData = async () => {
+export const fetchUserData = async (assistantId: string) => {
   const supabase = createClientComponentClient();
 
   const {
@@ -14,7 +14,8 @@ export const fetchUserData = async () => {
     const { data: personalityData, error: personalityError } = await supabase
       .from("personality_settings")
       .select("*")
-      .eq("userId", user.id)
+      .eq("user_id", userId)
+      .eq("assistant_id", assistantId)
       .single();
 
     let personalitySettings = null;
@@ -28,18 +29,19 @@ export const fetchUserData = async () => {
     const { data: assistantData, error: assistantError } = await supabase
       .from("assistant_settings")
       .select("openai_assistant_id")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
+      .eq("id", assistantId)
       .single();
 
-    let assistantId = null;
+    let openaiAssistantId = null;
     if (assistantData) {
-      assistantId = assistantData.openai_assistant_id;
+      openaiAssistantId = assistantData.openai_assistant_id;
     } else if (assistantError) {
       console.error("Error fetching assistant ID:", assistantError);
     }
 
-    return { userId, personalitySettings, assistantId };
+    return { userId, personalitySettings, openaiAssistantId };
   }
 
-  return { userId: null, personalitySettings: null, assistantId: null };
+  return { userId: null, personalitySettings: null, openaiAssistantId: null };
 };

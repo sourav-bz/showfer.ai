@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import PreviewWindow from "./PreviewWindow";
@@ -17,11 +17,17 @@ export default function Page() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<Voice[]>([]);
+  const searchParams = useSearchParams();
+  const assistantId = searchParams.get("assistant");
 
   useEffect(() => {
     const fetchExistingSettings = async () => {
       try {
-        const response = await fetch("/api/personality-settings");
+        let url = "/api/personality-settings";
+        if (assistantId) {
+          url += `?assistant=${assistantId}`;
+        }
+        const response = await fetch(url);
         if (response.ok) {
           const existingSettings = await response.json();
           personalitySettings.setSettings(existingSettings);
@@ -51,7 +57,7 @@ export default function Page() {
     };
 
     fetchExistingSettings();
-  }, []);
+  }, [assistantId]);
 
   const handleSaveSettings = async () => {
     setIsLoading(true);
@@ -68,6 +74,7 @@ export default function Page() {
         voice: personalitySettings.voice,
         speed: personalitySettings.selectedSpeed,
         emotionConfig: personalitySettings.emotionConfig,
+        assistant_id: assistantId,
       };
 
       const response = await fetch("/api/personality-settings", {

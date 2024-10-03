@@ -14,6 +14,8 @@ async function handleRequest(request: Request) {
   try {
     const personalitySettings = await request.json();
     const supabase = createRouteHandlerClient({ cookies });
+    const { searchParams } = new URL(request.url);
+    const assistantId = searchParams.get("assistant");
 
     const {
       data: { session },
@@ -25,13 +27,12 @@ async function handleRequest(request: Request) {
 
     const userId = session.user.id;
 
-    const { data, error } = await supabase
-      .from("personality_settings")
-      .upsert({
-        userId: userId,
-        ...personalitySettings,
-      })
-      .select();
+    let query = supabase.from("personality_settings").upsert({
+      user_id: userId,
+      ...personalitySettings,
+    });
+
+    const { data, error } = await query.select();
 
     console.log("error:", error);
 
@@ -55,6 +56,8 @@ async function handleRequest(request: Request) {
 export async function GET(request: Request) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
+    const { searchParams } = new URL(request.url);
+    const assistantId = searchParams.get("assistant");
 
     const {
       data: { session },
@@ -64,11 +67,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("personality_settings")
       .select("*")
-      .eq("userId", session.user.id)
-      .single();
+      .eq("user_id", session.user.id);
+
+    if (assistantId) {
+      query = query.eq("assistant_id", assistantId);
+    }
+
+    const { data, error } = await query.single();
 
     console.log("data:", data);
 

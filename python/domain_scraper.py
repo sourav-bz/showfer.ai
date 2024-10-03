@@ -151,8 +151,12 @@ def create_openai_assistant(name, domain_name, local_dir):
     # Create a vector store for the domain
     vector_store = client.beta.vector_stores.create(name=f"{domain_name} Knowledge Base")
     
-    # Get all files from the local directory
-    file_list = os.listdir(local_dir)
+    # Get all non-empty files from the local directory
+    file_list = [f for f in os.listdir(local_dir) if os.path.getsize(os.path.join(local_dir, f)) > 0]
+    
+    if not file_list:
+        print("No non-empty files found in the directory. Skipping file upload.")
+        return assistant.id
     
     # Upload files to OpenAI and add them to the vector store
     file_streams = [open(os.path.join(local_dir, file_name), "rb") for file_name in file_list]

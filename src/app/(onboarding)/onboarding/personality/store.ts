@@ -50,6 +50,24 @@ export const characters = [
     avatar: "/personality/sassy.png",
     primaryColor: "#C65D46",
   },
+  {
+    id: 9,
+    name: "Sassy Blue",
+    avatar: "/personality/blue-apron.png",
+    primaryColor: "#6DBAB0",
+  },
+  {
+    id: 10,
+    name: "Imogen Red",
+    avatar: "/personality/suta.png",
+    primaryColor: "#DF796C",
+  },
+  {
+    id: 11,
+    name: "Dr. Aman Grey",
+    avatar: "/personality/ordinary.png",
+    primaryColor: "#3C3A3A",
+  },
 ];
 
 export const speedLevels = ["slowest", "slow", "normal", "fast", "fastest"];

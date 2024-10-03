@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { useAudioStore } from "./audioStore";
 import { startAudio, stopAudio } from "../_utils/AudioUtils";
 import { useAnimation } from "framer-motion";
+import { useBotStore } from "./botStore";
 
 interface VoiceLogicContextType {
   isPlaying: boolean;
@@ -26,6 +27,7 @@ export const VoiceLogicProvider: React.FC = ({ children }) => {
     setErrorMessage,
     isAudioPlaying,
   } = useAudioStore();
+  const { assistantId } = useBotStore();
   const [isLoading, setIsLoading] = useState(true);
   const controls = useAnimation();
 
@@ -69,6 +71,8 @@ export const VoiceLogicProvider: React.FC = ({ children }) => {
 
   const handleStartAudio = async (isFirstConnection) => {
     try {
+      console.log("isFirstConnection", isFirstConnection);
+      console.log("assistantId", assistantId);
       await startAudio(setIsPlaying, isFirstConnection);
       setErrorMessage("");
     } catch (error) {

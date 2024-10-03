@@ -3,6 +3,7 @@ import time
 from functools import wraps
 from urllib.parse import urlparse
 from datetime import datetime, timezone
+import traceback
 
 import jwt
 import requests
@@ -86,17 +87,23 @@ def is_image_link(url):
 def get_links(url):
     driver = setup_driver()
     if not driver:
+        print("Failed to set up ChromeDriver")
         return []
     
-    driver.get(url)
-    time.sleep(5)
-    links = driver.find_elements(By.TAG_NAME, 'a')
-    href_list = [link.get_attribute('href') for link in links 
-                 if link.get_attribute('href') and not is_image_link(link.get_attribute('href'))]
-    driver.quit()
-    
-    print(f"Found {len(href_list)} non-image links.")
-    return href_list
+    try:
+        driver.get(url)
+        time.sleep(5)
+        links = driver.find_elements(By.TAG_NAME, 'a')
+        href_list = [link.get_attribute('href') for link in links 
+                     if link.get_attribute('href') and not is_image_link(link.get_attribute('href'))]
+        print(f"Found {len(href_list)} non-image links.")
+        return href_list
+    except Exception as e:
+        print(f"Error in get_links: {str(e)}")
+        print(traceback.format_exc())
+        return []
+    finally:
+        driver.quit()
 
 @app.route('/get-all-links', methods=['POST', 'OPTIONS'])
 @supabase_auth_required
@@ -104,17 +111,22 @@ def scrape_links(user_id):
     if request.method == 'OPTIONS':
         return '', 204
     
-    data = request.json
-    target_url = data.get('url')
-    
-    if not target_url:
-        return jsonify({"error": "No URL provided"}), 400
-    
-    links = get_links(target_url)
-    if links:
-        return jsonify({"user_id": user_id, "links": links})
-    else:
-        return jsonify({"error": "Failed to retrieve links"}), 500
+    try:
+        data = request.json
+        target_url = data.get('url')
+        
+        if not target_url:
+            return jsonify({"error": "No URL provided"}), 400
+        
+        links = get_links(target_url)
+        if links:
+            return jsonify({"user_id": user_id, "links": links})
+        else:
+            return jsonify({"error": "Failed to retrieve links"}), 500
+    except Exception as e:
+        print(f"Error in scrape_links: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 @app.route('/create-assistant', methods=['POST'])
 @supabase_auth_required

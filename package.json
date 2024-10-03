@@ -23,6 +23,7 @@
     "axios": "^1.7.5",
     "framer-motion": "^11.3.30",
     "fs": "^0.0.1-security",
+    "jsdom": "^25.0.1",
     "lottie-react": "^2.4.0",
     "lucide-react": "^0.436.0",
     "marked": "^14.1.0",
@@ -49,6 +50,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.14",
+    "@types/jsdom": "^21.1.7",
     "@types/node": "^20",
     "@types/protobufjs": "^6.0.0",
     "@types/react": "^18",

@@ -247,8 +247,11 @@ export default function BotTraining() {
         `/api/assistant-settings?userId=${user.id}`
       );
 
+      const domain = new URL(link).hostname;
+      const botName = `${domain} Bot`;
+
       const assistantSettings = {
-        name: "Mlada Bot",
+        name: botName,
         website_url: link,
         overall_status: "untrained",
         openai_assistant_id: null,

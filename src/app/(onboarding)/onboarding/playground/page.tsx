@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { usePlaygroundStore } from "@/app/dashboard/_store/PlaygroundStore";
 import Bot from "@/app/_ui/ShowferWidget/Bot";
@@ -23,6 +23,7 @@ export default function Playground() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const fullScreenContainerRef = useRef<HTMLDivElement>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const searchParams = useSearchParams();
 
   const { setIsMobile, isMobile, setUrl, currentUrl, setCurrentUrl } =
     useBotStore();
@@ -47,23 +48,64 @@ export default function Playground() {
           return;
         }
 
-        const { data, error } = await supabase
-          .from("assistant_settings")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
+        const assistantIdFromUrl = searchParams.get("assistant");
 
-        if (error) {
-          console.error("Error fetching assistant settings:", error);
-          return;
-        }
+        if (assistantIdFromUrl) {
+          // Fetch assistant details and personality details
+          const [assistantResponse, personalityResponse] = await Promise.all([
+            supabase
+              .from("assistant_settings")
+              .select("*")
+              .eq("id", assistantIdFromUrl)
+              .single(),
+            supabase
+              .from("personality_settings")
+              .select("*")
+              .eq("assistant_id", assistantIdFromUrl)
+              .single(),
+          ]);
 
-        if (data) {
-          setUrl(data.website_url || "");
-          setAssistantId(data.openai_assistant_id || "");
-          setCurrentUrl(data.website_url || "");
+          if (assistantResponse.error) {
+            console.error(
+              "Error fetching assistant settings:",
+              assistantResponse.error
+            );
+          } else if (assistantResponse.data) {
+            setUrl(assistantResponse.data.website_url || "");
+            setAssistantId(assistantResponse.data.openai_assistant_id || "");
+            setCurrentUrl(assistantResponse.data.website_url || "");
+          }
+
+          if (personalityResponse.error) {
+            console.error(
+              "Error fetching personality details:",
+              personalityResponse.error
+            );
+          } else if (personalityResponse.data) {
+            // Handle personality data as needed
+            console.log("Personality data:", personalityResponse.data);
+            // You might want to add a new state to store this data
+          }
         } else {
-          console.error("No assistant settings found");
+          // Existing logic for fetching user's assistant settings
+          const { data, error } = await supabase
+            .from("assistant_settings")
+            .select("*")
+            .eq("user_id", user.id)
+            .single();
+
+          if (error) {
+            console.error("Error fetching assistant settings:", error);
+            return;
+          }
+
+          if (data) {
+            setUrl(data.website_url || "");
+            setAssistantId(data.openai_assistant_id || "");
+            setCurrentUrl(data.website_url || "");
+          } else {
+            console.error("No assistant settings found");
+          }
         }
       } catch (error) {
         console.error("Error in fetchAssistantSettings:", error);
@@ -71,7 +113,7 @@ export default function Playground() {
     };
 
     fetchAssistantSettings();
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (assistantId) {
